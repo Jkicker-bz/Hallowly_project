@@ -1,9 +1,10 @@
 import { Link, useParams } from "react-router-dom";
 import { OnStageView } from "../components/OnStageView";
-import { getSetlistById, getSongById } from "../data/store";
+import { useLibrary } from "../context/LibraryContext";
 
 /** Full-bleed performance screen — deliberately ignores the app shell's tab bar/header. */
 export function PerformPage() {
+  const { getSetlistById, getSongById } = useLibrary();
   const { setlistId, songId } = useParams<{ setlistId: string; songId: string }>();
   const song = songId ? getSongById(songId) : undefined;
   // "library" is a synthetic setlistId used when opening a chart straight

@@ -5,6 +5,7 @@ import "./theme/onstage.css";
 
 import { AuthProvider } from "./context/AuthContext";
 import { ThemeProvider } from "./context/ThemeContext";
+import { LibraryProvider } from "./context/LibraryContext";
 import { AppShell } from "./components/layout/AppShell";
 
 import { HomePage } from "./pages/HomePage";
@@ -25,18 +26,20 @@ export default function App() {
   return (
     <AuthProvider>
       <ThemeProvider>
-        <BrowserRouter>
-          <Routes>
-            <Route element={<AppShell />}>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/setlists" element={<SetlistsPage />} />
-              <Route path="/library" element={<LibraryPage />} />
-              <Route path="/team" element={<TeamPage />} />
-              <Route path="/settings" element={<SettingsPage />} />
-            </Route>
-            <Route path="/setlists/:setlistId/perform/:songId" element={<PerformPage />} />
-          </Routes>
-        </BrowserRouter>
+        <LibraryProvider>
+          <BrowserRouter>
+            <Routes>
+              <Route element={<AppShell />}>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/setlists" element={<SetlistsPage />} />
+                <Route path="/library" element={<LibraryPage />} />
+                <Route path="/team" element={<TeamPage />} />
+                <Route path="/settings" element={<SettingsPage />} />
+              </Route>
+              <Route path="/setlists/:setlistId/perform/:songId" element={<PerformPage />} />
+            </Routes>
+          </BrowserRouter>
+        </LibraryProvider>
       </ThemeProvider>
     </AuthProvider>
   );

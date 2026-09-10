@@ -142,3 +142,70 @@
 .hw-accent-swatch.active {
   border-color: var(--hw-ink);
 }
+
+.hw-form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: var(--hw-space-3);
+}
+
+.hw-form-row label {
+  font-family: var(--hw-font-mono);
+  font-size: 10.5px;
+  color: var(--hw-silver-dim);
+  letter-spacing: 0.4px;
+}
+
+.hw-form-row input,
+.hw-form-row select,
+.hw-form-row textarea {
+  font-family: var(--hw-font-sans);
+  font-size: 13.5px;
+  color: var(--hw-ink);
+  background: var(--hw-surface-wall-raised);
+  border: 1px solid var(--hw-border);
+  border-radius: var(--hw-radius-sm);
+  padding: 9px 11px;
+}
+
+.hw-form-row textarea {
+  font-family: var(--hw-font-mono);
+  font-size: 12px;
+  min-height: 120px;
+  resize: vertical;
+}
+
+.hw-form-row-inline {
+  display: flex;
+  gap: 10px;
+}
+.hw-form-row-inline > .hw-form-row {
+  flex: 1;
+}
+
+.hw-btn-primary {
+  font-family: var(--hw-font-sans);
+  font-weight: 500;
+  font-size: 13px;
+  color: #FDFDFD;
+  background: var(--hw-accent);
+  border: none;
+  border-radius: var(--hw-radius-sm);
+  padding: 10px 16px;
+  cursor: pointer;
+}
+
+.hw-btn-quiet {
+  font-family: var(--hw-font-sans);
+  font-weight: 500;
+  font-size: 12.5px;
+  color: var(--hw-accent);
+  background: none;
+  border: 1px dashed var(--hw-border);
+  border-radius: var(--hw-radius-sm);
+  padding: 10px 14px;
+  cursor: pointer;
+  width: 100%;
+  text-align: center;
+}
