@@ -1,0 +1,86 @@
+/* -----------------------------------------------------------------------
+   Hallowly design tokens — "Intuitive Sanctity"
+   Foundation (monochrome blueprint) + swappable Personal Hallow accent.
+   Switch accents by changing data-accent on <html> or <body>:
+     data-accent="amethyst" | "lumen" | "bronze" | "flow"
+   Switch mode with data-theme="dark" | "light".
+----------------------------------------------------------------------- */
+
+:root,
+[data-theme="dark"] {
+  --hw-surface-void: #111111;
+  --hw-surface-wall: #1A1A1A;
+  --hw-surface-wall-raised: #1F1F20;
+  --hw-border: #2C3E50;
+  --hw-border-faint: rgba(44, 62, 80, 0.45);
+  --hw-ink: #FDFDFD;
+  --hw-silver: #C0C0C0;
+  --hw-silver-dim: #7d8383;
+}
+
+[data-theme="light"] {
+  --hw-surface-void: #FDFDFD;
+  --hw-surface-wall: #F8F9F9;
+  --hw-surface-wall-raised: #FFFFFF;
+  --hw-border: #E5E8E8;
+  --hw-border-faint: rgba(229, 232, 232, 0.7);
+  --hw-ink: #111111;
+  --hw-silver: #5b6060;
+  --hw-silver-dim: #9aa0a0;
+}
+
+/* --- Personal Hallow accents ------------------------------------------- */
+
+[data-accent="amethyst"] {
+  --hw-accent: #9B59B6;
+  --hw-accent-wash: rgba(155, 89, 182, 0.14);
+  --hw-accent-wash-strong: rgba(155, 89, 182, 0.28);
+  --hw-accent-glow: rgba(155, 89, 182, 0.55);
+  --hw-accent-border: rgba(155, 89, 182, 0.35);
+}
+
+[data-accent="lumen"] {
+  --hw-accent: #E67E22;
+  --hw-accent-wash: rgba(230, 126, 34, 0.14);
+  --hw-accent-wash-strong: rgba(230, 126, 34, 0.28);
+  --hw-accent-glow: rgba(230, 126, 34, 0.55);
+  --hw-accent-border: rgba(230, 126, 34, 0.35);
+}
+
+[data-accent="bronze"] {
+  --hw-accent: #A0815E;
+  --hw-accent-wash: rgba(160, 129, 94, 0.14);
+  --hw-accent-wash-strong: rgba(160, 129, 94, 0.28);
+  --hw-accent-glow: rgba(160, 129, 94, 0.55);
+  --hw-accent-border: rgba(160, 129, 94, 0.35);
+}
+
+[data-accent="flow"] {
+  --hw-accent: #1ABC9C;
+  --hw-accent-wash: rgba(26, 188, 156, 0.14);
+  --hw-accent-wash-strong: rgba(26, 188, 156, 0.28);
+  --hw-accent-glow: rgba(26, 188, 156, 0.55);
+  --hw-accent-border: rgba(26, 188, 156, 0.35);
+}
+
+/* --- Type scale ---------------------------------------------------------
+   Data/Code -> JetBrains Mono. Headers/Authority -> Montserrat.
+   Narrative moments (optional) -> Playfair Display.
+------------------------------------------------------------------------- */
+
+:root {
+  --hw-font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --hw-font-sans: "Montserrat", sans-serif;
+  --hw-font-serif: "Playfair Display", serif;
+
+  --hw-space-1: 4px;
+  --hw-space-2: 8px;
+  --hw-space-3: 14px;
+  --hw-space-4: 22px;
+  --hw-space-5: 34px;
+  --hw-space-6: 52px;
+
+  --hw-radius-sm: 8px;
+  --hw-radius-md: 14px;
+  --hw-radius-lg: 22px;
+}
