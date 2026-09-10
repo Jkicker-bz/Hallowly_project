@@ -1,9 +1,31 @@
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { OnStageView } from "../components/OnStageView";
-import { sampleSong } from "../data/sampleSong";
+import { getSetlistById, getSongById } from "../data/store";
 
 /** Full-bleed performance screen — deliberately ignores the app shell's tab bar/header. */
 export function PerformPage() {
+  const { setlistId, songId } = useParams<{ setlistId: string; songId: string }>();
+  const song = songId ? getSongById(songId) : undefined;
+  // "library" is a synthetic setlistId used when opening a chart straight
+  // from the Library tab rather than from an actual scheduled service.
+  const setlist = setlistId && setlistId !== "library" ? getSetlistById(setlistId) : undefined;
+
+  const position = setlist
+    ? {
+        current: setlist.entries.findIndex((e) => e.songId === songId) + 1,
+        total: setlist.entries.length,
+      }
+    : { current: 1, total: 1 };
+
+  if (!song) {
+    return (
+      <div style={{ padding: 40, color: "#FDFDFD" }}>
+        <p>Couldn't find that song.</p>
+        <Link to="/setlists">← Back to setlists</Link>
+      </div>
+    );
+  }
+
   return (
     <div
       style={{
@@ -18,7 +40,7 @@ export function PerformPage() {
         zIndex: 100,
       }}
     >
-      <OnStageView song={sampleSong} setlistPosition={{ current: 3, total: 6 }} />
+      <OnStageView song={song} setlistPosition={position} />
       <Link
         to="/setlists"
         style={{
