@@ -11,6 +11,8 @@ interface AuthContextValue {
   isLead: boolean;
   signedIn: boolean;
   signInWithEmail: (email: string) => Promise<string | null>;
+  /** Finish sign-in with the code from the email (works across apps/devices). */
+  verifyCode: (email: string, code: string) => Promise<string | null>;
   /** Demo-only role switch (hidden when a backend is connected). */
   signInAs: (role: Role) => void;
   signOut: () => void;
@@ -26,15 +28,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!supabase) return;
     const sb = supabase;
-    const load = async (email?: string, id?: string) => {
-      if (!email || !id) return setUser(null);
-      const { data } = await sb.rpc("my_profile");
-      const p = Array.isArray(data) ? data[0] : null;
-      setUser({ id, name: p?.full_name ?? email.split("@")[0], role: p?.role === "Lead" ? "lead" : "member", teamId: TEAM.id });
-    };
-    sb.auth.getSession().then(({ data }) => load(data.session?.user.email, data.session?.user.id));
-    // Defer: awaiting Supabase calls inside this callback can deadlock the client.
-    const { data: sub } = sb.auth.onAuthStateChange((_e, s) => { setTimeout(() => load(s?.user.email, s?.user.id), 0); });
+    // onAuthStateChange also fires INITIAL_SESSION, so no separate getSession() call is needed.
+    const { data: sub } = sb.auth.onAuthStateChange((event, s) => {
+      if (event === "TOKEN_REFRESHED") return; // same person, nothing to reload
+      // Deferred: awaiting Supabase calls inside this callback can deadlock the client.
+      setTimeout(async () => {
+        const u = s?.user;
+        const email = u?.email;
+        if (!u || !email) return setUser(null);
+        const { data } = await sb.rpc("my_profile");
+        const p = Array.isArray(data) ? data[0] : null;
+        setUser({ id: u.id, name: p?.full_name ?? email.split("@")[0], role: p?.role === "Lead" ? "lead" : "member", teamId: TEAM.id });
+      }, 0);
+    });
     return () => sub.subscription.unsubscribe();
   }, []);
 
@@ -45,7 +51,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signedIn: user !== null,
     signInWithEmail: async (email) => {
       if (!supabase) return "Backend not configured.";
-      const { error } = await supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: window.location.origin } });
+      const { error } = await supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: `${window.location.origin}/` } });
+      return error ? error.message : null;
+    },
+    verifyCode: async (email, code) => {
+      if (!supabase) return "Backend not configured.";
+      const { error } = await supabase.auth.verifyOtp({ email, token: code.trim(), type: "email" });
       return error ? error.message : null;
     },
     signInAs: (role) => setUser(demo(role)),

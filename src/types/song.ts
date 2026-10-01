@@ -73,6 +73,8 @@ export interface Song {
   /** Raw authored ChordPro text, kept so the song can be edited later. */
   source?: string;
   artist?: string;
+  /** false = chart not downloaded yet (fetched when the song is opened). */
+  loaded?: boolean;
   style?: string;
 }
 

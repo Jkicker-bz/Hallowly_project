@@ -3,7 +3,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { supabase } from "./supabase";
 import { parseSongBody } from "./chordpro";
-import type { Setlist, Song } from "../types/song";
+import type { Setlist, Song, SongSection } from "../types/song";
 import type { TeamMember } from "../types/user";
 
 type Row = Record<string, any>;
@@ -31,35 +31,20 @@ async function table(name: string, cols = "*"): Promise<Row[]> {
 
 export async function fetchAll(): Promise<{ songs: Song[]; setlists: Setlist[]; members: TeamMember[] }> {
   if (!supabase) throw new Error("Backend not configured");
-  const [songRows, chords, leads, lists, listSongs, listLeads] = await Promise.all([
+  const [songRows, leads, lists, listSongs, listLeads] = await Promise.all([
     table("songs"),
-    table("chords"),
     table("leads", "id,initials,full_name,role,avatar_color,active"), // never request email
     table("lists"),
     table("list_songs"),
     table("list_leads"),
   ]);
 
-  const bySong = new Map<string, Row[]>();
-  chords.forEach((c) => bySong.set(c.song_id, [...(bySong.get(c.song_id) ?? []), c]));
-
   const songs: Song[] = songRows
     .filter((s) => s.active !== false)
-    .map((s) => {
-      const rows = (bySong.get(s.id) ?? []).sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
-      const order: string[] = [];
-      const groups = new Map<string, string[]>();
-      rows.forEach((r) => {
-        const name = r.section_name || "Song";
-        if (!groups.has(name)) { groups.set(name, []); order.push(name); }
-        groups.get(name)!.push(...rowLines(r));
-      });
-      const body = order.map((n) => `{section: ${n}}\n${groups.get(n)!.join("\n")}`).join("\n");
-      return {
-        id: s.id, title: s.title, artist: s.artist, style: s.style ?? undefined,
-        originalKey: s.key || "C", bpm: s.bpm ?? undefined, source: body, sections: parseSongBody(body),
-      };
-    });
+    .map((s) => ({
+      id: s.id, title: s.title, artist: s.artist, style: s.style ?? undefined,
+      originalKey: s.key || "C", bpm: s.bpm ?? undefined, sections: [], loaded: false,
+    }));
 
   const known = new Set(songs.map((s) => s.id));
   const roleOf = new Map(leads.map((l) => [l.id, l.role as string]));
@@ -97,4 +82,24 @@ export async function pushList(s: Setlist): Promise<void> {
 export async function archiveList(id: string): Promise<void> {
   const { error } = await supabase!.from("lists").update({ active: false }).eq("id", id);
   if (error) throw error;
+}
+
+function chart(chords: Row[]): { source: string; sections: SongSection[] } {
+  const rows = [...chords].sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
+  const order: string[] = [];
+  const groups = new Map<string, string[]>();
+  rows.forEach((r) => {
+    const name = r.section_name || "Song";
+    if (!groups.has(name)) { groups.set(name, []); order.push(name); }
+    groups.get(name)!.push(...rowLines(r));
+  });
+  const source = order.map((n) => `{section: ${n}}\n${groups.get(n)!.join("\n")}`).join("\n");
+  return { source, sections: parseSongBody(source) };
+}
+
+/** Downloads one song's chart (called when a song is opened, not at startup). */
+export async function fetchChart(songId: string) {
+  const { data, error } = await supabase!.from("chords").select("*").eq("song_id", songId);
+  if (error) throw error;
+  return chart((data ?? []) as Row[]);
 }

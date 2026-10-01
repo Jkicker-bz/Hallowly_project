@@ -42,7 +42,7 @@ export function LibraryPage() {
       {shown.map((s) => (
         <div className="hw-card" key={s.id}>
           <div className="hw-card-title">{s.title}</div>
-          <div className="hw-card-meta">KEY {s.originalKey} · {s.bpm ? `${s.bpm} BPM · ` : ""}{s.sections.length} SECTIONS</div>
+          <div className="hw-card-meta">KEY {s.originalKey} · {s.bpm ? `${s.bpm} BPM · ` : ""}{s.artist ?? s.style ?? ""}</div>
           <div className="hw-row" style={{ marginTop: 12, justifyContent: "space-between" }}>
             <Link className="hw-card-link" style={{ margin: 0 }} to={`/setlists/library/perform/${s.id}`}>Open chart →</Link>
             {isLead && (

@@ -1,10 +1,10 @@
 // Songs, setlists and roster — persisted to localStorage so nothing is lost on refresh.
 // Swap the internals for API calls later; consumers only use these functions.
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { parseSongBody } from "../lib/chordpro";
 import type { Setlist, SetlistEntry, Song } from "../types/song";
 import type { TeamMember } from "../types/user";
-import { archiveList, fetchAll, pushList } from "../lib/remote";
+import { archiveList, fetchAll, fetchChart, pushList } from "../lib/remote";
 import { isBackendConfigured } from "../lib/supabase";
 import { songs as seedSongs, setlists as seedSetlists } from "../data/store";
 
@@ -49,6 +49,8 @@ interface Ctx {
   status: "loading" | "ready" | "error";
   /** True when data comes from the live database (writes arrive with login). */
   readOnly: boolean;
+  /** Downloads a song's chart on demand (no-op once loaded). */
+  ensureChart: (id: string) => void;
   getSongById: (id: string) => Song | undefined;
   getSetlistById: (id: string) => Setlist | undefined;
   addSong: (i: SongInput) => void;
@@ -81,6 +83,17 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
     fetchAll().then((d) => { setData(d); setStatus("ready"); }).catch(() => setStatus("error"));
   }, []);
 
+  const inflight = useRef(new Set<string>());
+  const ensureChart = (id: string) => {
+    const s = data.songs.find((x) => x.id === id);
+    if (!isBackendConfigured || !s || s.loaded !== false || inflight.current.has(id)) return;
+    inflight.current.add(id);
+    fetchChart(id)
+      .then((c) => setData((d) => ({ ...d, songs: d.songs.map((x) => (x.id === id ? { ...x, ...c, loaded: true } : x)) })))
+      .catch(() => setStatus("error"))
+      .finally(() => inflight.current.delete(id));
+  };
+
   const lists = (id: string, fn: (s: Setlist) => Setlist) => {
     const cur = data.setlists.find((s) => s.id === id);
     if (!cur) return;
@@ -91,6 +104,7 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
 
   const value: Ctx = {
     status,
+    ensureChart,
     readOnly: isBackendConfigured,
     songs: data.songs,
     members: data.members,
