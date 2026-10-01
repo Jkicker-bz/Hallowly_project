@@ -4,7 +4,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 import { parseSongBody } from "../lib/chordpro";
 import type { Setlist, SetlistEntry, Song } from "../types/song";
 import type { TeamMember } from "../types/user";
-import { fetchAll } from "../lib/remote";
+import { archiveList, fetchAll, pushList } from "../lib/remote";
 import { isBackendConfigured } from "../lib/supabase";
 import { songs as seedSongs, setlists as seedSetlists } from "../data/store";
 
@@ -34,7 +34,7 @@ function load(): Saved {
 }
 
 let counter = Date.now();
-const uid = (p: string) => `${p}-${(counter++).toString(36)}`;
+const uid = (p: string) => (isBackendConfigured ? crypto.randomUUID() : `${p}-${(counter++).toString(36)}`);
 const mkSong = (i: SongInput, id: string): Song => ({
   id,
   title: i.title.trim(),
@@ -81,8 +81,13 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
     fetchAll().then((d) => { setData(d); setStatus("ready"); }).catch(() => setStatus("error"));
   }, []);
 
-  const lists = (id: string, fn: (s: Setlist) => Setlist) =>
-    setData((d) => ({ ...d, setlists: d.setlists.map((s) => (s.id === id ? fn(s) : s)) }));
+  const lists = (id: string, fn: (s: Setlist) => Setlist) => {
+    const cur = data.setlists.find((s) => s.id === id);
+    if (!cur) return;
+    const next = fn(cur);
+    setData((d) => ({ ...d, setlists: d.setlists.map((s) => (s.id === id ? next : s)) }));
+    if (isBackendConfigured) pushList(next).catch(() => setStatus("error"));
+  };
 
   const value: Ctx = {
     status,

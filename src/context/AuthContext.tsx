@@ -1,49 +1,56 @@
-// ---------------------------------------------------------------------------
-// Every screen reads "who is signed in" from this context, never from a
-// prop chain. Right now `signIn` just sets mock local state; when a real
-// backend exists, only the inside of this file changes — nothing that
-// calls useAuth() needs to know or care.
-// ---------------------------------------------------------------------------
-
-import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
+// Real Supabase sign-in (magic link). Role comes from the `leads` table via the
+// my_profile() database function, matched on the signed-in email.
+// With no backend configured it falls back to a demo Lead so local dev still works.
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import type { Role, Team, User } from "../types/user";
+import { supabase, isBackendConfigured } from "../lib/supabase";
 
 interface AuthContextValue {
   user: User | null;
   team: Team | null;
   isLead: boolean;
-  /** Mock sign-in for foundation/demo purposes — swap for real auth later. */
+  signedIn: boolean;
+  signInWithEmail: (email: string) => Promise<string | null>;
+  /** Demo-only role switch (hidden when a backend is connected). */
   signInAs: (role: Role) => void;
   signOut: () => void;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
-
-const MOCK_TEAM: Team = {
-  id: "team-1",
-  name: "Riverside Worship",
-  defaultAccent: "amethyst",
-};
+const TEAM: Team = { id: "team-1", name: "Worship Team", defaultAccent: "amethyst" };
+const demo = (role: Role): User => ({ id: "demo", name: role === "lead" ? "Jordan" : "Sam", role, teamId: TEAM.id });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>({
-    id: "user-1",
-    name: "Jordan",
-    role: "lead",
-    teamId: MOCK_TEAM.id,
-  });
+  const [user, setUser] = useState<User | null>(isBackendConfigured ? null : demo("lead"));
 
-  const value = useMemo<AuthContextValue>(
-    () => ({
-      user,
-      team: user ? MOCK_TEAM : null,
-      isLead: user?.role === "lead",
-      signInAs: (role) =>
-        setUser({ id: "user-1", name: role === "lead" ? "Jordan" : "Sam", role, teamId: MOCK_TEAM.id }),
-      signOut: () => setUser(null),
-    }),
-    [user]
-  );
+  useEffect(() => {
+    if (!supabase) return;
+    const sb = supabase;
+    const load = async (email?: string, id?: string) => {
+      if (!email || !id) return setUser(null);
+      const { data } = await sb.rpc("my_profile");
+      const p = Array.isArray(data) ? data[0] : null;
+      setUser({ id, name: p?.full_name ?? email.split("@")[0], role: p?.role === "Lead" ? "lead" : "member", teamId: TEAM.id });
+    };
+    sb.auth.getSession().then(({ data }) => load(data.session?.user.email, data.session?.user.id));
+    // Defer: awaiting Supabase calls inside this callback can deadlock the client.
+    const { data: sub } = sb.auth.onAuthStateChange((_e, s) => { setTimeout(() => load(s?.user.email, s?.user.id), 0); });
+    return () => sub.subscription.unsubscribe();
+  }, []);
+
+  const value = useMemo<AuthContextValue>(() => ({
+    user,
+    team: user ? TEAM : null,
+    isLead: user?.role === "lead",
+    signedIn: user !== null,
+    signInWithEmail: async (email) => {
+      if (!supabase) return "Backend not configured.";
+      const { error } = await supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: window.location.origin } });
+      return error ? error.message : null;
+    },
+    signInAs: (role) => setUser(demo(role)),
+    signOut: () => { supabase?.auth.signOut(); setUser(isBackendConfigured ? null : demo("lead")); },
+  }), [user]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

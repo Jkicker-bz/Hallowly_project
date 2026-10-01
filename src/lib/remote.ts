@@ -77,3 +77,24 @@ export async function fetchAll(): Promise<{ songs: Song[]; setlists: Setlist[]; 
   const members = leads.filter((l) => l.active !== false).map((l) => ({ id: l.id, name: l.full_name, instrument: l.role }));
   return { songs, setlists, members };
 }
+
+/** Saves one setlist: upserts the list row, then rewrites its songs in order. */
+export async function pushList(s: Setlist): Promise<void> {
+  const sb = supabase!;
+  const a = await sb.from("lists").upsert({ id: s.id, name: s.serviceTitle, date: s.serviceDate, list_key: s.listKey ?? null, note: s.note ?? null, active: true });
+  if (a.error) throw a.error;
+  const d = await sb.from("list_songs").delete().eq("list_id", s.id);
+  if (d.error) throw d.error;
+  if (s.entries.length) {
+    const r = await sb.from("list_songs").insert(
+      s.entries.map((e, i) => ({ list_id: s.id, song_id: e.songId, section_name: e.section ?? "Set", position: i, key_override: e.keyOverride ?? null }))
+    );
+    if (r.error) throw r.error;
+  }
+}
+
+/** Soft-delete, matching the `active` flag the old app used. */
+export async function archiveList(id: string): Promise<void> {
+  const { error } = await supabase!.from("lists").update({ active: false }).eq("id", id);
+  if (error) throw error;
+}
