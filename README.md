@@ -62,3 +62,10 @@ this automatically and persists the choice.
 Foundation stage: auth (mocked), theming, routing/shell, and the on-stage
 chord/lyric renderer are working end to end. No backend yet -- `src/data/`
 holds placeholder content standing in for what a real API will serve.
+
+## Deploying (Vercel + Supabase)
+
+1. Push this repo to GitHub, then Vercel → Add New → Project → import it (framework: Vite, build `npm run build`, output `dist`).
+2. Add `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` under Environment Variables (see `.env.example`), then redeploy.
+3. In Supabase → Authentication → URL Configuration, add your Vercel URL as the Site URL / redirect.
+4. Row Level Security must be enabled on every table before real users touch it.
