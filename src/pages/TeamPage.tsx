@@ -31,9 +31,25 @@ function Crew({ id }: { id: string }) {
 
 export function TeamPage() {
   const { team } = useAuth();
-  const { members, setlists, addMember, removeMember } = useLibrary();
+  const { members, setlists, addMember, removeMember, readOnly } = useLibrary();
   const [name, setName] = useState("");
   const [inst, setInst] = useState("");
+
+  if (readOnly) {
+    return (
+      <RequireLead>
+        <h1 className="hw-page-title">{team?.name}</h1>
+        <p className="hw-page-subtitle">Roster and who's serving when.</p>
+        <div className="hw-card">{members.map((m) => <span className="hw-chip" key={m.id}>{m.name} · {m.instrument}</span>)}</div>
+        {setlists.map((s) => (
+          <div className="hw-card" key={s.id}>
+            <div className="hw-card-title">{s.serviceTitle}</div>
+            <div style={{ marginTop: 10 }}>{(s.crew ?? []).map((c) => <span className="hw-chip" key={c.memberId}>{members.find((m) => m.id === c.memberId)?.name} · {c.role}</span>)}</div>
+          </div>
+        ))}
+      </RequireLead>
+    );
+  }
 
   return (
     <RequireLead>

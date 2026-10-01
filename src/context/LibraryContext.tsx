@@ -4,6 +4,8 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 import { parseSongBody } from "../lib/chordpro";
 import type { Setlist, SetlistEntry, Song } from "../types/song";
 import type { TeamMember } from "../types/user";
+import { fetchAll } from "../lib/remote";
+import { isBackendConfigured } from "../lib/supabase";
 import { songs as seedSongs, setlists as seedSetlists } from "../data/store";
 
 export interface SongInput { title: string; originalKey: string; bpm?: number; body: string }
@@ -44,6 +46,9 @@ const mkSong = (i: SongInput, id: string): Song => ({
 
 interface Ctx {
   songs: Song[]; setlists: Setlist[]; members: TeamMember[];
+  status: "loading" | "ready" | "error";
+  /** True when data comes from the live database (writes arrive with login). */
+  readOnly: boolean;
   getSongById: (id: string) => Song | undefined;
   getSetlistById: (id: string) => Setlist | undefined;
   addSong: (i: SongInput) => void;
@@ -65,15 +70,23 @@ interface Ctx {
 const LibraryContext = createContext<Ctx | null>(null);
 
 export function LibraryProvider({ children }: { children: ReactNode }) {
-  const [data, setData] = useState<Saved>(load);
+  const [data, setData] = useState<Saved>(() => (isBackendConfigured ? { songs: [], setlists: [], members: [] } : load()));
+  const [status, setStatus] = useState<"loading" | "ready" | "error">(isBackendConfigured ? "loading" : "ready");
   useEffect(() => {
+    if (isBackendConfigured) return;
     try { localStorage.setItem(KEY, JSON.stringify(data)); } catch { /* storage unavailable */ }
   }, [data]);
+  useEffect(() => {
+    if (!isBackendConfigured) return;
+    fetchAll().then((d) => { setData(d); setStatus("ready"); }).catch(() => setStatus("error"));
+  }, []);
 
   const lists = (id: string, fn: (s: Setlist) => Setlist) =>
     setData((d) => ({ ...d, setlists: d.setlists.map((s) => (s.id === id ? fn(s) : s)) }));
 
   const value: Ctx = {
+    status,
+    readOnly: isBackendConfigured,
     songs: data.songs,
     members: data.members,
     setlists: [...data.setlists].sort((a, b) => a.serviceDate.localeCompare(b.serviceDate)),

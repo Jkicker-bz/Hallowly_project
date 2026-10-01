@@ -1,5 +1,6 @@
 import { NavLink, Outlet } from "react-router-dom";
 import { Logo } from "../Logo";
+import { useLibrary } from "../../context/LibraryContext";
 import { useAuth } from "../../context/AuthContext";
 
 interface TabDef {
@@ -26,6 +27,7 @@ const TABS: TabDef[] = [
  */
 export function AppShell() {
   const { user, isLead } = useAuth();
+  const { status, songs, readOnly } = useLibrary();
   const visibleTabs = TABS.filter((t) => !t.leadOnly || isLead);
 
   return (
@@ -36,6 +38,8 @@ export function AppShell() {
       </header>
 
       <main className="hw-app-content">
+        {readOnly && status === "error" && <p className="hw-card-meta" role="alert">Couldn't reach the database. Check your connection.</p>}
+        {readOnly && status === "ready" && songs.length === 0 && <p className="hw-card-meta" role="status">Connected, but no songs came back. Check your Row Level Security read policies.</p>}
         <Outlet />
       </main>
 
