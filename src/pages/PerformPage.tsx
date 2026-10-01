@@ -29,7 +29,7 @@ export function PerformPage() {
       <OnStageView
         key={song.id}
         song={song}
-        baseKey={entries[i]?.keyOverride}
+        baseKey={entries[i]?.keyOverride ?? setlist?.listKey}
         serviceTitle={setlist?.serviceTitle}
         position={i >= 0 ? { current: i + 1, total: entries.length } : undefined}
         onBack={() => nav(setlist ? "/setlists" : "/library")}

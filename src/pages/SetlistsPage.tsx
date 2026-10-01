@@ -36,7 +36,7 @@ function NewSetlist({ onDone }: { onDone: () => void }) {
 }
 
 export function SetlistsPage() {
-  const { setlists, getSongById, removeSongFromSetlist, setEntryKey, moveEntry, deleteSetlist } = useLibrary();
+  const { setlists, getSongById, removeSongFromSetlist, setEntryKey, moveEntry, deleteSetlist, updateSetlist, setEntrySection } = useLibrary();
   const { isLead } = useAuth();
   const [creating, setCreating] = useState(false);
 
@@ -57,20 +57,34 @@ export function SetlistsPage() {
             {isLead && <button className="hw-mini" onClick={() => confirm(`Delete "${sl.serviceTitle}"?`) && deleteSetlist(sl.id)}>delete</button>}
           </div>
 
+          {sl.note && <p className="hw-card-meta" style={{ marginTop: 10 }}>{sl.note}</p>}
+          {isLead && (
+            <div className="hw-row" style={{ marginTop: 10 }}>
+              <select className="hw-mini" value={sl.listKey ?? ""} onChange={(e) => updateSetlist(sl.id, { listKey: e.target.value || undefined })} aria-label="Key for the whole set">
+                <option value="">set key: per song</option>
+                {KEYS.map((k) => <option key={k} value={k}>set key: {k}</option>)}
+              </select>
+            </div>
+          )}
           <div style={{ marginTop: 14, display: "flex", flexDirection: "column", gap: 12 }}>
             {sl.entries.map((en, i) => {
               const s = getSongById(en.songId);
               if (!s) return null;
               return (
                 <div key={en.songId}>
+                  {en.section && <div className="hw-card-meta" style={{ marginBottom: 2 }}>{en.section.toUpperCase()}</div>}
                   <Link className="hw-card-link" style={{ margin: 0 }} to={`/setlists/${sl.id}/perform/${s.id}`}>
-                    {i + 1}. {s.title} · {en.keyOverride ?? s.originalKey}
+                    {i + 1}. {s.title} · {en.keyOverride ?? sl.listKey ?? s.originalKey}
                   </Link>
                   {isLead && (
                     <div className="hw-row" style={{ marginTop: 6 }}>
                       <select className="hw-mini" value={en.keyOverride ?? ""} onChange={(e) => setEntryKey(sl.id, s.id, e.target.value)} aria-label="Key for this service">
                         <option value="">key: {s.originalKey}</option>
                         {KEYS.map((k) => <option key={k} value={k}>{k}</option>)}
+                      </select>
+                      <select className="hw-mini" value={en.section ?? ""} onChange={(e) => setEntrySection(sl.id, s.id, e.target.value)} aria-label="Section">
+                        <option value="">section</option>
+                        {["Praise", "Worship", "Offering", "Set"].map((x) => <option key={x}>{x}</option>)}
                       </select>
                       <button className="hw-mini" onClick={() => moveEntry(sl.id, s.id, -1)} aria-label="Move up">↑</button>
                       <button className="hw-mini" onClick={() => moveEntry(sl.id, s.id, 1)} aria-label="Move down">↓</button>

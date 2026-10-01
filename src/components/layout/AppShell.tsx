@@ -1,4 +1,5 @@
 import { NavLink, Outlet } from "react-router-dom";
+import { Logo } from "../Logo";
 import { useAuth } from "../../context/AuthContext";
 
 interface TabDef {
@@ -30,7 +31,7 @@ export function AppShell() {
   return (
     <div className="hw-app">
       <header className="hw-app-header">
-        <span className="hw-wordmark">Hallowly</span>
+        <span className="hw-wordmark"><Logo /> Hallowly</span>
         <span className="hw-role-badge">{isLead ? "TEAM LEAD" : "TEAM MEMBER"} · {user?.name}</span>
       </header>
 

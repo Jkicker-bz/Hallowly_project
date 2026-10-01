@@ -92,6 +92,9 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
         ...d,
         setlists: [...d.setlists, { id: uid("setlist"), serviceTitle: i.serviceTitle.trim() || "Service", serviceDate: i.serviceDate, entries: [], crew: [] }],
       })),
+    updateSetlist: (id, p) => lists(id, (s) => ({ ...s, ...p })),
+    setEntrySection: (id, songId, section) =>
+      lists(id, (s) => ({ ...s, entries: s.entries.map((e) => (e.songId === songId ? { ...e, section: section || undefined } : e)) })),
     deleteSetlist: (id) => setData((d) => ({ ...d, setlists: d.setlists.filter((s) => s.id !== id) })),
     addSongToSetlist: (id, e) => lists(id, (s) => ({ ...s, entries: [...s.entries.filter((x) => x.songId !== e.songId), e] })),
     removeSongFromSetlist: (id, songId) => lists(id, (s) => ({ ...s, entries: s.entries.filter((e) => e.songId !== songId) })),
