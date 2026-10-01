@@ -9,7 +9,7 @@ import { parseSongBody } from "../lib/chordpro";
 import type { Setlist, Song } from "../types/song";
 
 function song(id: string, title: string, key: string, bpm: number, body: string): Song {
-  return { id, title, originalKey: key, bpm, sections: parseSongBody(body) };
+  return { id, title, originalKey: key, bpm, source: body, sections: parseSongBody(body) };
 }
 
 // Placeholder lyrics written for this demo — not from any published song.

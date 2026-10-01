@@ -235,3 +235,19 @@
   border: none;
   cursor: pointer;
 }
+
+/* ---- responsive performance view (mobile-first) ---- */
+.hw-perform { position: fixed; inset: 0; z-index: 100; background: var(--hw-surface-void); display: flex; align-items: center; justify-content: center; }
+.hw-device { width: 100%; max-width: 480px; height: 100%; border-radius: 0; border: none; box-shadow: none; padding-top: env(safe-area-inset-top, 0px); }
+@media (min-width: 700px) { .hw-device { height: min(100%, 860px); border-radius: 32px; border: 1px solid var(--hw-border-faint); } }
+.hw-stage { min-height: 0; }
+.hw-lyric-scroll { overflow-y: auto; scrollbar-width: none; padding-bottom: 40vh; transition: none; }
+.hw-lyric-scroll::-webkit-scrollbar { display: none; }
+.hw-line { cursor: pointer; }
+.hw-chords-flow { display: flex; gap: 18px; flex-wrap: wrap; }
+.hw-dock { padding-bottom: calc(18px + env(safe-area-inset-bottom, 0px)); }
+.hw-tools { display: flex; justify-content: space-between; gap: 6px; margin-bottom: 12px; }
+.hw-step { display: flex; align-items: center; border: 1px solid var(--hw-border); border-radius: 20px; font-family: var(--hw-font-mono); font-size: 10.5px; color: var(--hw-silver); }
+.hw-step button { background: none; border: none; color: var(--hw-silver); width: 32px; height: 34px; font-size: 15px; cursor: pointer; }
+.hw-step span { min-width: 40px; text-align: center; }
+.hw-icon-btn:disabled { opacity: 0.3; cursor: default; }

@@ -1,117 +1,126 @@
-// ---------------------------------------------------------------------------
-// Everything the Lead persona actually needs to write: new songs, new
-// setlists, adding a song to a setlist. Lives in React state for now
-// (seeded from data/store.ts), so it behaves like real app data — added
-// songs show up in the Library immediately, added setlist entries show up
-// in Setlists immediately — without a backend existing yet.
-//
-// When a real API exists, `addSong`/`addSetlist`/`addSongToSetlist` become
-// calls that optimistically update state and POST in the background. No
-// consuming page needs to change, because they only ever call these
-// functions, never touch storage directly.
-// ---------------------------------------------------------------------------
-
-import { createContext, useContext, useState, type ReactNode } from "react";
+// Songs, setlists and roster — persisted to localStorage so nothing is lost on refresh.
+// Swap the internals for API calls later; consumers only use these functions.
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { parseSongBody } from "../lib/chordpro";
 import type { Setlist, SetlistEntry, Song } from "../types/song";
+import type { TeamMember } from "../types/user";
 import { songs as seedSongs, setlists as seedSetlists } from "../data/store";
 
-export interface NewSongInput {
-  title: string;
-  originalKey: string;
-  bpm?: number;
-  /** ChordPro-style shorthand, e.g. "{section: verse 1}\n[G]Lyric text" */
-  body: string;
+export interface SongInput { title: string; originalKey: string; bpm?: number; body: string }
+export interface SetlistInput { serviceTitle: string; serviceDate: string }
+
+interface Saved { songs: Song[]; setlists: Setlist[]; members: TeamMember[] }
+
+const SEED_MEMBERS: TeamMember[] = [
+  { id: "m-1", name: "Jordan", instrument: "Vocals" },
+  { id: "m-2", name: "Sam", instrument: "Keys" },
+  { id: "m-3", name: "Ria", instrument: "Vocals" },
+  { id: "m-4", name: "Dee", instrument: "Drums" },
+];
+const KEY = "hallowly:library:v1";
+
+function load(): Saved {
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (raw) return JSON.parse(raw);
+  } catch { /* fall through to seed */ }
+  return {
+    songs: seedSongs,
+    setlists: seedSetlists.map((s) => ({ ...s, crew: [{ memberId: "m-2", role: "Keys" }] })),
+    members: SEED_MEMBERS,
+  };
 }
 
-export interface NewSetlistInput {
-  serviceTitle: string;
-  serviceDate: string;
-}
+let counter = Date.now();
+const uid = (p: string) => `${p}-${(counter++).toString(36)}`;
+const mkSong = (i: SongInput, id: string): Song => ({
+  id,
+  title: i.title.trim(),
+  originalKey: i.originalKey.trim() || "C",
+  bpm: i.bpm,
+  source: i.body,
+  sections: parseSongBody(i.body),
+});
 
-interface LibraryContextValue {
-  songs: Song[];
-  setlists: Setlist[];
+interface Ctx {
+  songs: Song[]; setlists: Setlist[]; members: TeamMember[];
   getSongById: (id: string) => Song | undefined;
   getSetlistById: (id: string) => Setlist | undefined;
-  addSong: (input: NewSongInput) => Song;
-  addSetlist: (input: NewSetlistInput) => Setlist;
-  addSongToSetlist: (setlistId: string, entry: SetlistEntry) => void;
+  addSong: (i: SongInput) => void;
+  updateSong: (id: string, i: SongInput) => void;
+  deleteSong: (id: string) => void;
+  addSetlist: (i: SetlistInput) => void;
+  deleteSetlist: (id: string) => void;
+  addSongToSetlist: (setlistId: string, e: SetlistEntry) => void;
   removeSongFromSetlist: (setlistId: string, songId: string) => void;
+  setEntryKey: (setlistId: string, songId: string, key?: string) => void;
+  moveEntry: (setlistId: string, songId: string, dir: -1 | 1) => void;
+  addMember: (name: string, instrument: string) => void;
+  removeMember: (id: string) => void;
+  assign: (setlistId: string, memberId: string, role: string) => void;
+  unassign: (setlistId: string, memberId: string) => void;
 }
-
-const LibraryContext = createContext<LibraryContextValue | null>(null);
-
-let idCounter = 100;
-function nextId(prefix: string): string {
-  idCounter += 1;
-  return `${prefix}-${idCounter}`;
-}
+const LibraryContext = createContext<Ctx | null>(null);
 
 export function LibraryProvider({ children }: { children: ReactNode }) {
-  const [songs, setSongs] = useState<Song[]>(seedSongs);
-  const [setlists, setSetlists] = useState<Setlist[]>(seedSetlists);
+  const [data, setData] = useState<Saved>(load);
+  useEffect(() => {
+    try { localStorage.setItem(KEY, JSON.stringify(data)); } catch { /* storage unavailable */ }
+  }, [data]);
 
-  const addSong = (input: NewSongInput): Song => {
-    const song: Song = {
-      id: nextId("song"),
-      title: input.title.trim(),
-      originalKey: input.originalKey.trim() || "C",
-      bpm: input.bpm,
-      sections: parseSongBody(input.body),
-    };
-    setSongs((prev) => [...prev, song]);
-    return song;
+  const lists = (id: string, fn: (s: Setlist) => Setlist) =>
+    setData((d) => ({ ...d, setlists: d.setlists.map((s) => (s.id === id ? fn(s) : s)) }));
+
+  const value: Ctx = {
+    songs: data.songs,
+    members: data.members,
+    setlists: [...data.setlists].sort((a, b) => a.serviceDate.localeCompare(b.serviceDate)),
+    getSongById: (id) => data.songs.find((s) => s.id === id),
+    getSetlistById: (id) => data.setlists.find((s) => s.id === id),
+    addSong: (i) => setData((d) => ({ ...d, songs: [...d.songs, mkSong(i, uid("song"))] })),
+    updateSong: (id, i) => setData((d) => ({ ...d, songs: d.songs.map((s) => (s.id === id ? mkSong(i, id) : s)) })),
+    deleteSong: (id) =>
+      setData((d) => ({
+        ...d,
+        songs: d.songs.filter((s) => s.id !== id),
+        setlists: d.setlists.map((s) => ({ ...s, entries: s.entries.filter((e) => e.songId !== id) })),
+      })),
+    addSetlist: (i) =>
+      setData((d) => ({
+        ...d,
+        setlists: [...d.setlists, { id: uid("setlist"), serviceTitle: i.serviceTitle.trim() || "Service", serviceDate: i.serviceDate, entries: [], crew: [] }],
+      })),
+    deleteSetlist: (id) => setData((d) => ({ ...d, setlists: d.setlists.filter((s) => s.id !== id) })),
+    addSongToSetlist: (id, e) => lists(id, (s) => ({ ...s, entries: [...s.entries.filter((x) => x.songId !== e.songId), e] })),
+    removeSongFromSetlist: (id, songId) => lists(id, (s) => ({ ...s, entries: s.entries.filter((e) => e.songId !== songId) })),
+    setEntryKey: (id, songId, key) =>
+      lists(id, (s) => ({ ...s, entries: s.entries.map((e) => (e.songId === songId ? { ...e, keyOverride: key || undefined } : e)) })),
+    moveEntry: (id, songId, dir) =>
+      lists(id, (s) => {
+        const a = [...s.entries];
+        const i = a.findIndex((e) => e.songId === songId);
+        const j = i + dir;
+        if (i < 0 || j < 0 || j >= a.length) return s;
+        [a[i], a[j]] = [a[j], a[i]];
+        return { ...s, entries: a };
+      }),
+    addMember: (name, instrument) =>
+      setData((d) => ({ ...d, members: [...d.members, { id: uid("m"), name: name.trim(), instrument: instrument.trim() || "Vocals" }] })),
+    removeMember: (id) =>
+      setData((d) => ({
+        ...d,
+        members: d.members.filter((m) => m.id !== id),
+        setlists: d.setlists.map((s) => ({ ...s, crew: (s.crew ?? []).filter((c) => c.memberId !== id) })),
+      })),
+    assign: (id, memberId, role) =>
+      lists(id, (s) => ({ ...s, crew: [...(s.crew ?? []).filter((c) => c.memberId !== memberId), { memberId, role }] })),
+    unassign: (id, memberId) => lists(id, (s) => ({ ...s, crew: (s.crew ?? []).filter((c) => c.memberId !== memberId) })),
   };
 
-  const addSetlist = (input: NewSetlistInput): Setlist => {
-    const setlist: Setlist = {
-      id: nextId("setlist"),
-      serviceTitle: input.serviceTitle.trim() || "Untitled Service",
-      serviceDate: input.serviceDate,
-      entries: [],
-    };
-    setSetlists((prev) => [...prev, setlist]);
-    return setlist;
-  };
-
-  const addSongToSetlist = (setlistId: string, entry: SetlistEntry) => {
-    setSetlists((prev) =>
-      prev.map((s) =>
-        s.id === setlistId
-          ? { ...s, entries: [...s.entries.filter((e) => e.songId !== entry.songId), entry] }
-          : s
-      )
-    );
-  };
-
-  const removeSongFromSetlist = (setlistId: string, songId: string) => {
-    setSetlists((prev) =>
-      prev.map((s) =>
-        s.id === setlistId ? { ...s, entries: s.entries.filter((e) => e.songId !== songId) } : s
-      )
-    );
-  };
-
-  return (
-    <LibraryContext.Provider
-      value={{
-        songs,
-        setlists,
-        getSongById: (id) => songs.find((s) => s.id === id),
-        getSetlistById: (id) => setlists.find((s) => s.id === id),
-        addSong,
-        addSetlist,
-        addSongToSetlist,
-        removeSongFromSetlist,
-      }}
-    >
-      {children}
-    </LibraryContext.Provider>
-  );
+  return <LibraryContext.Provider value={value}>{children}</LibraryContext.Provider>;
 }
 
-export function useLibrary(): LibraryContextValue {
+export function useLibrary(): Ctx {
   const ctx = useContext(LibraryContext);
   if (!ctx) throw new Error("useLibrary must be used inside <LibraryProvider>");
   return ctx;

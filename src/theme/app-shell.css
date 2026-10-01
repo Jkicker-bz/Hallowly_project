@@ -209,3 +209,9 @@
   width: 100%;
   text-align: center;
 }
+
+.hw-mini { background: none; border: 1px solid var(--hw-border); color: var(--hw-silver); border-radius: 8px; padding: 5px 10px; font-family: var(--hw-font-mono); font-size: 11px; cursor: pointer; }
+.hw-chip { display: inline-flex; align-items: center; gap: 8px; font-family: var(--hw-font-mono); font-size: 11px; color: var(--hw-silver); background: var(--hw-accent-wash); border: 1px solid var(--hw-accent-border); border-radius: 20px; padding: 5px 10px; margin: 0 6px 6px 0; }
+.hw-chip button { background: none; border: none; color: var(--hw-silver-dim); cursor: pointer; padding: 0; }
+.hw-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.hw-tab { min-height: 48px; justify-content: center; }

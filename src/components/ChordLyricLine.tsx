@@ -2,67 +2,45 @@ import { useMemo } from "react";
 import type { SongLine, SongViewMode } from "../types/song";
 import { measureTextWidth, lyricFont } from "../lib/measureText";
 
-interface ChordLyricLineProps {
+interface Props {
   line: SongLine;
   viewMode: SongViewMode;
-  /** true = this is the line currently under the reading position / autoscroll focus */
+  sizePx?: number;
+  /** Maps an authored chord to what should be displayed (transpose/capo). */
+  showChord?: (symbol: string) => string;
   isCurrent?: boolean;
-  /** true = this line has already been sung and scrolled past */
   isPast?: boolean;
 }
 
-const LYRIC_WEIGHT = { weight: 400, sizePx: 19 };
-const LYRIC_WEIGHT_CURRENT = { weight: 500, sizePx: 19 };
-
-/**
- * Renders one song line with chords positioned by measured pixel offset
- * rather than character count, so a chord over "you" lands on "you" even
- * though Montserrat is proportional. See lib/measureText.ts for why this
- * step exists.
- */
-export function ChordLyricLine({ line, viewMode, isCurrent, isPast }: ChordLyricLineProps) {
-  const font = lyricFont(isCurrent ? LYRIC_WEIGHT_CURRENT : LYRIC_WEIGHT);
-
-  const chordOffsets = useMemo(() => {
-    if (viewMode === "lyrics") return [];
-    return line.chords.map((chord) => ({
-      ...chord,
-      leftPx: measureTextWidth(line.lyric.slice(0, chord.charIndex), font),
-    }));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [line, font, viewMode]);
-
-  const className = [
-    "hw-line",
-    isCurrent && "hw-line--current",
-    isPast && "hw-line--past",
-  ]
-    .filter(Boolean)
-    .join(" ");
+/** One lyric line; chords sit at measured pixel offsets so they land on their syllable. */
+export function ChordLyricLine({ line, viewMode, sizePx = 19, showChord = (s) => s, isCurrent, isPast }: Props) {
+  const font = lyricFont({ weight: isCurrent ? 500 : 400, sizePx });
+  const offsets = useMemo(
+    () => line.chords.map((c) => ({ ...c, left: measureTextWidth(line.lyric.slice(0, c.charIndex), font) })),
+    [line, font]
+  );
+  const cls = ["hw-line", isCurrent && "hw-line--current", isPast && "hw-line--past"].filter(Boolean).join(" ");
 
   return (
-    <div className={className}>
+    <div className={cls}>
       {isCurrent && <span className="hw-halo-mark" aria-hidden="true" />}
-
-      {viewMode !== "lyrics" && (
-        <div className="hw-chords-row" style={{ position: "relative", height: 16 }}>
-          {chordOffsets.map((chord, i) => (
-            <span
-              key={i}
-              className="hw-chord"
-              style={{ position: "absolute", left: chord.leftPx, transform: "translateX(0)" }}
-            >
-              {chord.symbol}
+      {viewMode === "chords" && (
+        <div className="hw-chords-flow">
+          {line.chords.map((c, i) => (
+            <span key={i} className="hw-chord" style={{ fontSize: sizePx * 0.8 }}>{showChord(c.symbol)}</span>
+          ))}
+        </div>
+      )}
+      {viewMode === "combined" && (
+        <div style={{ position: "relative", height: sizePx * 0.9 }}>
+          {offsets.map((c, i) => (
+            <span key={i} className="hw-chord" style={{ position: "absolute", left: c.left, fontSize: sizePx * 0.66 }}>
+              {showChord(c.symbol)}
             </span>
           ))}
         </div>
       )}
-
-      {viewMode !== "chords" && (
-        <div className="hw-lyric" style={{ font }}>
-          {line.lyric || "\u00A0"}
-        </div>
-      )}
+      {viewMode !== "chords" && <div className="hw-lyric" style={{ font }}>{line.lyric || "\u00A0"}</div>}
     </div>
   );
 }

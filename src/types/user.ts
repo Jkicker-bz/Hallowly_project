@@ -22,3 +22,10 @@ export interface User {
   role: Role;
   teamId: string;
 }
+
+export interface TeamMember {
+  id: string;
+  name: string;
+  /** Default role/instrument, e.g. "Keys", "Vocals". */
+  instrument: string;
+}

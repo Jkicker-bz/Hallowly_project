@@ -70,6 +70,8 @@ export interface Song {
   sections: SongSection[];
   /** Optional reference audio, enabling real timestamp-based autoscroll. */
   audioUrl?: string;
+  /** Raw authored ChordPro text, kept so the song can be edited later. */
+  source?: string;
 }
 
 /** One entry in a service setlist: a song plus any service-specific overrides. */
@@ -81,7 +83,13 @@ export interface SetlistEntry {
   notes?: string;
 }
 
+export interface CrewAssignment {
+  memberId: string;
+  role: string;
+}
+
 export interface Setlist {
+  crew?: CrewAssignment[];
   id: string;
   serviceTitle: string;
   serviceDate: string; // ISO date

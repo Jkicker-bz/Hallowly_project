@@ -1,58 +1,41 @@
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { OnStageView } from "../components/OnStageView";
 import { useLibrary } from "../context/LibraryContext";
 
-/** Full-bleed performance screen — deliberately ignores the app shell's tab bar/header. */
+/** Full-bleed performance screen — breaks out of the shell chrome for hands-free use. */
 export function PerformPage() {
   const { getSetlistById, getSongById } = useLibrary();
-  const { setlistId, songId } = useParams<{ setlistId: string; songId: string }>();
+  const { setlistId, songId } = useParams();
+  const nav = useNavigate();
   const song = songId ? getSongById(songId) : undefined;
-  // "library" is a synthetic setlistId used when opening a chart straight
-  // from the Library tab rather than from an actual scheduled service.
+  // "library" = opened straight from the Library tab, not from a service.
   const setlist = setlistId && setlistId !== "library" ? getSetlistById(setlistId) : undefined;
-
-  const position = setlist
-    ? {
-        current: setlist.entries.findIndex((e) => e.songId === songId) + 1,
-        total: setlist.entries.length,
-      }
-    : { current: 1, total: 1 };
 
   if (!song) {
     return (
-      <div style={{ padding: 40, color: "#FDFDFD" }}>
-        <p>Couldn't find that song.</p>
-        <Link to="/setlists">← Back to setlists</Link>
+      <div className="hw-card" style={{ margin: 24 }}>
+        <div className="hw-card-title">Couldn't find that song.</div>
+        <Link className="hw-card-link" to="/setlists">← Back to setlists</Link>
       </div>
     );
   }
 
+  const entries = setlist?.entries ?? [];
+  const i = entries.findIndex((e) => e.songId === songId);
+  const go = (k: number) => nav(`/setlists/${setlistId}/perform/${entries[k].songId}`, { replace: true });
+
   return (
-    <div
-      style={{
-        position: "fixed",
-        inset: 0,
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: 16,
-        background: "#0a0a0a",
-        zIndex: 100,
-      }}
-    >
-      <OnStageView song={song} setlistPosition={position} />
-      <Link
-        to="/setlists"
-        style={{
-          fontFamily: "Montserrat, sans-serif",
-          fontSize: 12,
-          color: "#7d8383",
-          textDecoration: "none",
-        }}
-      >
-        ← Back to setlist
-      </Link>
+    <div className="hw-perform">
+      <OnStageView
+        key={song.id}
+        song={song}
+        baseKey={entries[i]?.keyOverride}
+        serviceTitle={setlist?.serviceTitle}
+        position={i >= 0 ? { current: i + 1, total: entries.length } : undefined}
+        onBack={() => nav(setlist ? "/setlists" : "/library")}
+        onPrev={i > 0 ? () => go(i - 1) : undefined}
+        onNext={i >= 0 && i < entries.length - 1 ? () => go(i + 1) : undefined}
+      />
     </div>
   );
 }
