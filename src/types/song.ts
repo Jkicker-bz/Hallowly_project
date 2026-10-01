@@ -72,6 +72,8 @@ export interface Song {
   audioUrl?: string;
   /** Raw authored ChordPro text, kept so the song can be edited later. */
   source?: string;
+  artist?: string;
+  style?: string;
 }
 
 /** One entry in a service setlist: a song plus any service-specific overrides. */
@@ -81,6 +83,8 @@ export interface SetlistEntry {
   keyOverride?: string;
   capoOverride?: number;
   notes?: string;
+  /** Service section, e.g. Praise / Worship / Offering. */
+  section?: string;
 }
 
 export interface CrewAssignment {
@@ -90,6 +94,9 @@ export interface CrewAssignment {
 
 export interface Setlist {
   crew?: CrewAssignment[];
+  note?: string;
+  /** Key applied to the whole set unless a song has its own override. */
+  listKey?: string;
   id: string;
   serviceTitle: string;
   serviceDate: string; // ISO date

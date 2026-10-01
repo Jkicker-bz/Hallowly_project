@@ -50,6 +50,8 @@ interface Ctx {
   updateSong: (id: string, i: SongInput) => void;
   deleteSong: (id: string) => void;
   addSetlist: (i: SetlistInput) => void;
+  updateSetlist: (id: string, p: Partial<Pick<Setlist, "note" | "listKey">>) => void;
+  setEntrySection: (setlistId: string, songId: string, section: string) => void;
   deleteSetlist: (id: string) => void;
   addSongToSetlist: (setlistId: string, e: SetlistEntry) => void;
   removeSongFromSetlist: (setlistId: string, songId: string) => void;

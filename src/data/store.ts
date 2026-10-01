@@ -82,10 +82,11 @@ export const setlists: Setlist[] = [
     id: "setlist-sep14",
     serviceTitle: "Sunday Service",
     serviceDate: "2026-09-14",
+    note: "Keep it intimate — lean acoustic until the last chorus.",
     entries: [
-      { songId: "song-boundless-grace" },
-      { songId: "song-steady-anchor", keyOverride: "E" },
-      { songId: "song-open-hands" },
+      { songId: "song-boundless-grace", section: "Praise" },
+      { songId: "song-steady-anchor", keyOverride: "E", section: "Praise" },
+      { songId: "song-open-hands", section: "Worship" },
     ],
   },
 ];
@@ -93,3 +94,10 @@ export const setlists: Setlist[] = [
 export function getSetlistById(id: string): Setlist | undefined {
   return setlists.find((s) => s.id === id);
 }
+
+const META: Record<string, { artist: string; style: string }> = {
+  "song-boundless-grace": { artist: "Original", style: "Contemporary" },
+  "song-steady-anchor": { artist: "Original", style: "Hymn" },
+  "song-open-hands": { artist: "Original", style: "Gospel" },
+};
+songs.forEach((s) => Object.assign(s, META[s.id]));
