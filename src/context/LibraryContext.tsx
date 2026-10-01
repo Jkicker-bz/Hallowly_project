@@ -105,15 +105,18 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
         songs: d.songs.filter((s) => s.id !== id),
         setlists: d.setlists.map((s) => ({ ...s, entries: s.entries.filter((e) => e.songId !== id) })),
       })),
-    addSetlist: (i) =>
-      setData((d) => ({
-        ...d,
-        setlists: [...d.setlists, { id: uid("setlist"), serviceTitle: i.serviceTitle.trim() || "Service", serviceDate: i.serviceDate, entries: [], crew: [] }],
-      })),
+    addSetlist: (i) => {
+      const sl: Setlist = { id: uid("setlist"), serviceTitle: i.serviceTitle.trim() || "Service", serviceDate: i.serviceDate, entries: [], crew: [] };
+      setData((d) => ({ ...d, setlists: [...d.setlists, sl] }));
+      if (isBackendConfigured) pushList(sl).catch(() => setStatus("error"));
+    },
     updateSetlist: (id, p) => lists(id, (s) => ({ ...s, ...p })),
     setEntrySection: (id, songId, section) =>
       lists(id, (s) => ({ ...s, entries: s.entries.map((e) => (e.songId === songId ? { ...e, section: section || undefined } : e)) })),
-    deleteSetlist: (id) => setData((d) => ({ ...d, setlists: d.setlists.filter((s) => s.id !== id) })),
+    deleteSetlist: (id) => {
+      setData((d) => ({ ...d, setlists: d.setlists.filter((s) => s.id !== id) }));
+      if (isBackendConfigured) archiveList(id).catch(() => setStatus("error"));
+    },
     addSongToSetlist: (id, e) => lists(id, (s) => ({ ...s, entries: [...s.entries.filter((x) => x.songId !== e.songId), e] })),
     removeSongFromSetlist: (id, songId) => lists(id, (s) => ({ ...s, entries: s.entries.filter((e) => e.songId !== songId) })),
     setEntryKey: (id, songId, key) =>

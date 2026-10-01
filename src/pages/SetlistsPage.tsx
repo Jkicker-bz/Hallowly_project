@@ -36,8 +36,8 @@ function NewSetlist({ onDone }: { onDone: () => void }) {
 }
 
 export function SetlistsPage() {
-  const { setlists, getSongById, removeSongFromSetlist, setEntryKey, moveEntry, deleteSetlist, updateSetlist, setEntrySection, readOnly } = useLibrary();
-  const isLead = useAuth().isLead && !readOnly;
+  const { setlists, getSongById, removeSongFromSetlist, setEntryKey, moveEntry, deleteSetlist, updateSetlist, setEntrySection } = useLibrary();
+  const { isLead } = useAuth();
   const [creating, setCreating] = useState(false);
 
   return (

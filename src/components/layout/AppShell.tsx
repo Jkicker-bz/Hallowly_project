@@ -1,5 +1,6 @@
-import { NavLink, Outlet } from "react-router-dom";
+import { Link, NavLink, Outlet } from "react-router-dom";
 import { Logo } from "../Logo";
+import { isBackendConfigured } from "../../lib/supabase";
 import { useLibrary } from "../../context/LibraryContext";
 import { useAuth } from "../../context/AuthContext";
 
@@ -26,7 +27,7 @@ const TABS: TabDef[] = [
  * not two different apps to maintain.
  */
 export function AppShell() {
-  const { user, isLead } = useAuth();
+  const { user, isLead, signOut } = useAuth();
   const { status, songs, readOnly } = useLibrary();
   const visibleTabs = TABS.filter((t) => !t.leadOnly || isLead);
 
@@ -34,7 +35,14 @@ export function AppShell() {
     <div className="hw-app">
       <header className="hw-app-header">
         <span className="hw-wordmark"><Logo /> Hallowly</span>
-        <span className="hw-role-badge">{isLead ? "TEAM LEAD" : "TEAM MEMBER"} · {user?.name}</span>
+        {user ? (
+          <span className="hw-role-badge">
+            {isLead ? "TEAM LEAD" : "TEAM MEMBER"} · {user.name}
+            {isBackendConfigured && <> · <button className="hw-mini" style={{ padding: "1px 6px" }} onClick={signOut}>sign out</button></>}
+          </span>
+        ) : (
+          <Link className="hw-role-badge" style={{ textDecoration: "none" }} to="/login">Sign in</Link>
+        )}
       </header>
 
       <main className="hw-app-content">

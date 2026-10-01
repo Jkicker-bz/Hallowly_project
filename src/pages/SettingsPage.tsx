@@ -1,3 +1,4 @@
+import { isBackendConfigured } from "../lib/supabase";
 import { useAuth } from "../context/AuthContext";
 import { useTheme, type Accent } from "../context/ThemeContext";
 
@@ -69,7 +70,7 @@ export function SettingsPage() {
         </div>
       </div>
 
-      <div className="hw-card">
+      {!isBackendConfigured && <div className="hw-card">
         <div className="hw-card-title">Preview as</div>
         <div className="hw-card-meta" style={{ marginTop: 8 }}>
           <button
@@ -104,7 +105,7 @@ export function SettingsPage() {
             Team Member
           </button>
         </div>
-      </div>
+      </div>}
     </div>
   );
 }

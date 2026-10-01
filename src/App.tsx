@@ -13,6 +13,7 @@ import { SetlistsPage } from "./pages/SetlistsPage";
 import { LibraryPage } from "./pages/LibraryPage";
 import { TeamPage } from "./pages/TeamPage";
 import { SettingsPage } from "./pages/SettingsPage";
+import { LoginPage } from "./pages/LoginPage";
 import { PerformPage } from "./pages/PerformPage";
 
 /**
@@ -35,6 +36,7 @@ export default function App() {
                 <Route path="/library" element={<LibraryPage />} />
                 <Route path="/team" element={<TeamPage />} />
                 <Route path="/settings" element={<SettingsPage />} />
+                <Route path="/login" element={<LoginPage />} />
               </Route>
               <Route path="/setlists/:setlistId/perform/:songId" element={<PerformPage />} />
             </Routes>
