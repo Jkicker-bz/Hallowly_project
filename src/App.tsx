@@ -15,6 +15,7 @@ import { LibraryPage } from "./pages/LibraryPage";
 import { TeamPage } from "./pages/TeamPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { LoginPage } from "./pages/LoginPage";
+import { ScreenIndex, ScreenRoute } from "./screens/ScreenRoute";
 import { PerformPage } from "./pages/PerformPage";
 
 /**
@@ -39,7 +40,9 @@ export default function App() {
                 <Route path="/settings" element={<SettingsPage />} />
                 <Route path="/login" element={<LoginPage />} />
               </Route>
-              <Route path="/setlists/:setlistId/perform/:songId" element={<PerformPage />} />
+              <Route path="/ui" element={<ScreenIndex />} />
+            <Route path="/ui/:name" element={<ScreenRoute />} />
+            <Route path="/setlists/:setlistId/perform/:songId" element={<PerformPage />} />
             </Routes>
           </BrowserRouter>
         </LibraryProvider>

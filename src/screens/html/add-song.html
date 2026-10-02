@@ -1,0 +1,311 @@
+
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <svg width="26" height="32" viewBox="0 0 32 40" fill="none">
+      <ellipse cx="16" cy="5.5" rx="11" ry="4.2" stroke="#C0C0C0" stroke-width="1.4" fill="none"/>
+      <path d="M6 12 C5.8 14 5.8 28 6 32 C6.1 34 6.5 35.5 5.5 36.5 C5 37 4.2 37.2 4 37" stroke="#C0C0C0" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+      <path d="M22 11 C26 12.5 29 16 28 20 C27.2 23.5 24 25.5 21 25 C19 24.5 18 23.2 18.5 25.5" stroke="#C0C0C0" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+      <path d="M18.5 25.5 C19.5 29 23 30 25.5 29 C28 28 29 25 28 22" stroke="#C0C0C0" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+      <path d="M18.5 25.5 C18 27 17.8 33 18.5 35 C19.2 37 21 38 22.5 37.5" stroke="#C0C0C0" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+      <line x1="6" y1="24" x2="18.5" y2="24" stroke="#C0C0C0" stroke-width="1.5" stroke-linecap="round"/>
+      <circle cx="19" cy="21.5" r="1.6" fill="#C0C0C0"/><circle cx="19" cy="26.5" r="1.6" fill="#C0C0C0"/>
+    </svg>
+    <span class="sidebar-logo-text">HALLOWLY</span>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">Overview</div>
+    <a class="nav-item" href="/ui/dashboard"><span class="nav-icon">⬡</span> Dashboard</a>
+    <a class="nav-item active" href="/ui/library"><span class="nav-icon">◈</span> Song Library <span class="nav-badge">124</span></a>
+    <a class="nav-item" href="/ui/setlists"><span class="nav-icon">≡</span> Set Lists <span class="nav-badge">38</span></a>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">Manage</div>
+    <a class="nav-item" href="/ui/chord-editor"><span class="nav-icon">♩</span> Chord Sheets</a>
+    <a class="nav-item" href="/ui/singers"><span class="nav-icon">◎</span> Singer Profiles</a>
+    <a class="nav-item" href="/ui/team"><span class="nav-icon">⊞</span> Team Access</a>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">Tools</div>
+    <a class="nav-item" href="/ui/library"><span class="nav-icon">↓</span> Export / Print</a>
+    <a class="nav-item" href="/ui/settings"><span class="nav-icon">◇</span> Settings</a>
+  </div>
+  <div class="sidebar-bottom">
+    <div class="user-card">
+      <div class="user-avatar">JM</div>
+      <div><div class="user-name">Joel Morales</div><div class="user-role">Worship Lead · Iglesia Calvario</div></div>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <a href="/ui/library" class="back-btn">← Library</a>
+      <div class="topbar-divider"></div>
+      <span class="topbar-title">Add New Song</span>
+    </div>
+    <div class="topbar-right">
+      <button class="btn ghost">Save Draft</button>
+      <button class="btn primary">Publish Song →</button>
+    </div>
+  </div>
+
+  <div class="scroll">
+    <div class="form-grid">
+
+      <!-- LEFT COLUMN -->
+      <div>
+
+        <!-- Song Identity -->
+        <div class="section-card">
+          <div class="sc-header">
+            <span class="sc-title">Song Identity</span>
+            <span class="sc-eyebrow">01 / REQUIRED</span>
+          </div>
+          <div class="sc-body">
+            <div class="field-group">
+              <label for="song-title">Song Title</label>
+              <input type="text" id="song-title" placeholder="e.g. Goodness of God"/>
+            </div>
+            <div class="field-row-2">
+              <div>
+                <label for="song-artist">Artist / Writer</label>
+                <input type="text" id="song-artist" placeholder="e.g. Bethel Music"/>
+              </div>
+              <div>
+                <label for="song-album">Album / Source</label>
+                <input type="text" id="song-album" placeholder="e.g. Victory (Live)"/>
+              </div>
+            </div>
+            <div class="field-row-2">
+              <div>
+                <label for="song-year">Year</label>
+                <input type="number" id="song-year" placeholder="2020" min="1800" max="2030"/>
+              </div>
+              <div>
+                <label for="song-lang">Language</label>
+                <select id="song-lang">
+                  <option value="">Select…</option>
+                  <option>English</option>
+                  <option>Spanish</option>
+                  <option>Bilingual (EN/ES)</option>
+                  <option>Creole</option>
+                  <option>Other</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Musical Details -->
+        <div class="section-card">
+          <div class="sc-header">
+            <span class="sc-title">Musical Details</span>
+            <span class="sc-eyebrow">02 / REQUIRED</span>
+          </div>
+          <div class="sc-body">
+            <div class="field-group">
+              <label>Original Key</label>
+              <div class="key-selector">
+                <button class="key-btn">C</button>
+                <button class="key-btn">D</button>
+                <button class="key-btn">E</button>
+                <button class="key-btn">F</button>
+                <button class="key-btn">G</button>
+                <button class="key-btn">A</button>
+                <button class="key-btn">B</button>
+              </div>
+              <div class="key-row-2">
+                <button class="key-btn">C♯</button>
+                <button class="key-btn">E♭</button>
+                <button class="key-btn">F♯</button>
+                <button class="key-btn">A♭</button>
+                <button class="key-btn">B♭</button>
+              </div>
+            </div>
+
+            <div class="field-row-2" style="margin-top:16px;">
+              <div>
+                <label>Tempo (BPM)</label>
+                <div class="bpm-row">
+                  <input type="number" class="bpm-input" id="song-bpm" placeholder="72" min="40" max="220"/>
+                  <span class="bpm-label">BPM</span>
+                </div>
+              </div>
+              <div>
+                <label for="song-timesig">Time Signature</label>
+                <select id="song-timesig">
+                  <option>4/4</option><option>3/4</option><option>6/8</option>
+                  <option>12/8</option><option>2/4</option><option>5/4</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="field-group" style="margin-top:16px;">
+              <label>Style / Genre</label>
+              <div class="style-chips" id="style-chips">
+                <button class="style-chip">Contemporary</button>
+                <button class="style-chip aq">Gospel</button>
+                <button class="style-chip am">Latin / Cumbia</button>
+                <button class="style-chip br">Praise</button>
+                <button class="style-chip si">Hymn</button>
+                <button class="style-chip">Ballad</button>
+                <button class="style-chip aq">Uptempo</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Chord Sheet -->
+        <div class="section-card">
+          <div class="sc-header">
+            <span class="sc-title">Chord Sheet</span>
+            <span class="sc-eyebrow">03 / OPTIONAL</span>
+          </div>
+          <div class="sc-body">
+            <div class="chord-toolbar">
+              <span style="font-size:9px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;align-self:center;">Insert →</span>
+              <button class="chord-key-btn">Verse</button>
+              <button class="chord-key-btn">Pre-Ch.</button>
+              <button class="chord-key-btn">Chorus</button>
+              <button class="chord-key-btn">Bridge</button>
+              <button class="chord-key-btn">Outro</button>
+              <div class="chord-sep"></div>
+              <button class="chord-key-btn">Bar</button>
+              <button class="chord-key-btn">Beat</button>
+            </div>
+            <textarea class="chord-textarea" id="chord-sheet" placeholder="[Verse 1]
+G         D         Em        C
+Lyric line goes here
+
+[Chorus]
+G               D
+Lyric line goes here
+Em              C
+Lyric line goes here
+
+// Use JetBrains Mono formatting. Chords sit above lyrics.
+// Sections in [brackets]. Bars with pipes |."></textarea>
+            <p class="field-hint">Write chords above each lyric line. Sections in [Verse], [Chorus], etc. Auto-formatted in JetBrains Mono.</p>
+          </div>
+        </div>
+
+        <!-- Custom Tags -->
+        <div class="section-card">
+          <div class="sc-header">
+            <span class="sc-title">Custom Tags</span>
+            <span class="sc-eyebrow">04 / OPTIONAL</span>
+          </div>
+          <div class="sc-body">
+            <p class="field-hint" style="margin-bottom:12px;">Add custom tags to help with filtering — e.g. "Mother's Day", "Easter", "Offering".</p>
+            <div class="custom-tags" id="tags-container">
+              <span class="ctag">Easter <span class="ctag-x">×</span></span>
+            </div>
+            <div class="tag-input-row">
+              <input type="text" id="tag-input" placeholder="New tag…"/>
+              <button class="tag-add-btn">Add Tag</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- RIGHT COLUMN -->
+      <div>
+
+        <!-- Live Preview -->
+        <div class="section-card">
+          <div class="sc-header"><span class="sc-title">Preview</span></div>
+          <div class="sc-body" style="padding:16px;">
+            <p style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;">How it appears in the library</p>
+            <div class="preview-box">
+              <div class="preview-song-title" id="prev-title">Song Title</div>
+              <div class="preview-artist" id="prev-artist">Artist</div>
+              <div class="preview-chips">
+                <span class="pchip" id="prev-key" style="background:var(--accent-lo);color:var(--accent);">Key: —</span>
+                <span class="pchip" id="prev-style" style="background:rgba(136,135,128,.1);color:var(--muted2);">Style</span>
+                <span class="pchip" id="prev-lang" style="background:rgba(192,192,192,.08);color:var(--silver);">—</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Assign to Singers -->
+        <div class="section-card">
+          <div class="sc-header">
+            <span class="sc-title">Assign Singers</span>
+            <span class="sc-eyebrow">Optional</span>
+          </div>
+          <div class="sc-body" style="padding:14px 16px;">
+            <p class="field-hint" style="margin-bottom:12px;">Tag which team members typically lead or sing this song.</p>
+            <div class="singer-list">
+              <div class="singer-row">
+                <div class="singer-avatar" style="background:rgba(155,89,182,.18);color:var(--accent);border:0.5px solid var(--accent);">JM</div>
+                <div><div class="singer-name">Joel Morales</div><div class="singer-role-tag">Lead · Guitar</div></div>
+                <div class="singer-toggle on"></div>
+              </div>
+              <div class="singer-row">
+                <div class="singer-avatar" style="background:rgba(26,188,156,.15);color:var(--aqua);border:0.5px solid rgba(26,188,156,.4);">AS</div>
+                <div><div class="singer-name">Ana Sánchez</div><div class="singer-role-tag">Vocalist</div></div>
+                <div class="singer-toggle on"></div>
+              </div>
+              <div class="singer-row">
+                <div class="singer-avatar" style="background:rgba(192,192,192,.1);color:var(--silver);border:0.5px solid rgba(192,192,192,.3);">PT</div>
+                <div><div class="singer-name">Pedro Torres</div><div class="singer-role-tag">Keys</div></div>
+                <div class="singer-toggle"></div>
+              </div>
+              <div class="singer-row">
+                <div class="singer-avatar" style="background:rgba(230,126,34,.15);color:var(--amber);border:0.5px solid rgba(230,126,34,.3);">RM</div>
+                <div><div class="singer-name">Rosa Medina</div><div class="singer-role-tag">Vocalist</div></div>
+                <div class="singer-toggle"></div>
+              </div>
+              <div class="singer-row">
+                <div class="singer-avatar" style="background:rgba(160,129,94,.15);color:var(--bronze);border:0.5px solid rgba(160,129,94,.3);">MV</div>
+                <div><div class="singer-name">Marcos Velásquez</div><div class="singer-role-tag">Guitar</div></div>
+                <div class="singer-toggle"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Visibility -->
+        <div class="section-card">
+          <div class="sc-header"><span class="sc-title">Visibility</span></div>
+          <div class="sc-body">
+            <div class="field-group">
+              <label for="visibility">Who can see this song?</label>
+              <select id="visibility">
+                <option value="public">Public — anyone can browse</option>
+                <option value="members">Members only — team login required</option>
+                <option value="lead">Lead only — not visible to team</option>
+              </select>
+            </div>
+            <div class="field-group" style="margin-bottom:0;">
+              <label for="song-status">Status</label>
+              <select id="song-status">
+                <option>Published</option>
+                <option>Draft</option>
+                <option>Archived</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Org context reminder -->
+        <div style="display:flex;align-items:center;gap:10px;padding:14px 16px;background:var(--surface);border:0.5px solid var(--border);border-radius:4px;margin-top:0;">
+          <div style="width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 6px var(--accent);flex-shrink:0;"></div>
+          <div>
+            <div style="font-size:10px;font-weight:500;color:var(--accent);letter-spacing:1px;">Iglesia Calvario Succotz</div>
+            <div style="font-size:10px;color:var(--muted2);margin-top:1px;">This song is added to your organization's library only.</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</main>
+
+

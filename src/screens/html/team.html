@@ -1,0 +1,307 @@
+
+
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <svg width="26" height="32" viewBox="0 0 32 40" fill="none">
+      <ellipse cx="16" cy="5.5" rx="11" ry="4.2" stroke="#C0C0C0" stroke-width="1.4" fill="none"/>
+      <path d="M6 12 C5.8 14 5.8 28 6 32 C6.1 34 6.5 35.5 5.5 36.5 C5 37 4.2 37.2 4 37" stroke="#C0C0C0" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+      <path d="M22 11 C26 12.5 29 16 28 20 C27.2 23.5 24 25.5 21 25 C19 24.5 18 23.2 18.5 25.5" stroke="#C0C0C0" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+      <path d="M18.5 25.5 C19.5 29 23 30 25.5 29 C28 28 29 25 28 22" stroke="#C0C0C0" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+      <path d="M18.5 25.5 C18 27 17.8 33 18.5 35 C19.2 37 21 38 22.5 37.5" stroke="#C0C0C0" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+      <line x1="6" y1="24" x2="18.5" y2="24" stroke="#C0C0C0" stroke-width="1.5" stroke-linecap="round"/>
+      <circle cx="19" cy="21.5" r="1.6" fill="#C0C0C0"/><circle cx="19" cy="26.5" r="1.6" fill="#C0C0C0"/>
+    </svg>
+    <span class="sidebar-logo-text">HALLOWLY</span>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">Overview</div>
+    <a class="nav-item" href="/ui/dashboard"><span class="nav-icon">⬡</span> Dashboard</a>
+    <a class="nav-item" href="/ui/library"><span class="nav-icon">◈</span> Song Library</a>
+    <a class="nav-item" href="/ui/setlists"><span class="nav-icon">≡</span> Set Lists</a>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">Manage</div>
+    <a class="nav-item" href="/ui/chord-editor"><span class="nav-icon">♩</span> Chord Sheets</a>
+    <a class="nav-item" href="/ui/singers"><span class="nav-icon">◎</span> Singer Profiles</a>
+    <a class="nav-item active" href="/ui/team"><span class="nav-icon">⊞</span> Team Access</a>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">Tools</div>
+    <a class="nav-item" href="/ui/library"><span class="nav-icon">↓</span> Export / Print</a>
+    <a class="nav-item" href="/ui/settings"><span class="nav-icon">◇</span> Settings</a>
+  </div>
+  <div class="sidebar-bottom">
+    <div class="user-card">
+      <div class="user-avatar">JM</div>
+      <div><div class="user-name">Joel Morales</div><div class="user-role">Worship Lead · Iglesia Calvario</div></div>
+    </div>
+  </div>
+</aside>
+
+<main class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <div>
+        <div class="topbar-title">Team Access</div>
+        <div class="topbar-sub">Iglesia Calvario Succotz · 12 members</div>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <button class="btn ghost">+ Invite Member</button>
+      <button class="btn primary">Generate New Code</button>
+    </div>
+  </div>
+
+  <div class="scroll">
+    <!-- STATS -->
+    <div class="stat-strip">
+      <div class="stat-card"><div class="sc-label">Total Members</div><div class="sc-value">12</div><div class="sc-sub">Active in org</div></div>
+      <div class="stat-card"><div class="sc-label">Pending Invites</div><div class="sc-value" style="color:var(--amber);">03</div><div class="sc-sub">Awaiting join</div></div>
+      <div class="stat-card"><div class="sc-label">Active Code</div><div class="sc-value" style="font-size:18px;color:var(--accent);letter-spacing:3px;">HWL–K4R</div><div class="sc-sub">Expires in 7 days</div></div>
+      <div class="stat-card"><div class="sc-label">Access Level</div><div class="sc-value" style="font-size:16px;">Lead</div><div class="sc-sub">Your permission tier</div></div>
+    </div>
+
+    <div class="page-grid">
+      <!-- LEFT: Member table -->
+      <div>
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Active Members</span>
+            <span class="card-action">+ Invite member</span>
+          </div>
+          <table class="member-table">
+            <thead>
+              <tr>
+                <th>Member</th>
+                <th>Role</th>
+                <th>Status</th>
+                <th>Joined</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <div class="member-cell">
+                    <div class="m-avatar" style="background:rgba(155,89,182,.18);color:var(--accent);border:0.5px solid var(--accent);">JM</div>
+                    <div><div class="m-name">Joel Morales</div><div class="m-email">joel@calvario.bz</div></div>
+                  </div>
+                </td>
+                <td><span class="role-badge rb-lead">Worship Lead</span></td>
+                <td><span class="status-dot sd-active"></span><span class="status-text">Active</span></td>
+                <td><span class="joined-date">Jan 2024</span></td>
+                <td><div class="row-actions"><span style="font-size:10px;color:var(--muted2);letter-spacing:1px;">You</span></div></td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="member-cell">
+                    <div class="m-avatar" style="background:rgba(26,188,156,.15);color:var(--aqua);border:0.5px solid rgba(26,188,156,.4);">AS</div>
+                    <div><div class="m-name">Ana Sánchez</div><div class="m-email">ana.s@calvario.bz</div></div>
+                  </div>
+                </td>
+                <td><span class="role-badge rb-vocalist">Vocalist</span></td>
+                <td><span class="status-dot sd-active"></span><span class="status-text">Active</span></td>
+                <td><span class="joined-date">Feb 2024</span></td>
+                <td><div class="row-actions"><button class="row-btn edit">Edit</button><button class="row-btn promote">Promote</button><button class="row-btn remove">Remove</button></div></td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="member-cell">
+                    <div class="m-avatar" style="background:rgba(192,192,192,.1);color:var(--silver);border:0.5px solid rgba(192,192,192,.3);">PT</div>
+                    <div><div class="m-name">Pedro Torres</div><div class="m-email">pedro.t@gmail.com</div></div>
+                  </div>
+                </td>
+                <td><span class="role-badge rb-musician">Musician · Keys</span></td>
+                <td><span class="status-dot sd-active"></span><span class="status-text">Active</span></td>
+                <td><span class="joined-date">Mar 2024</span></td>
+                <td><div class="row-actions"><button class="row-btn edit">Edit</button><button class="row-btn promote">Promote</button><button class="row-btn remove">Remove</button></div></td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="member-cell">
+                    <div class="m-avatar" style="background:rgba(230,126,34,.15);color:var(--amber);border:0.5px solid rgba(230,126,34,.3);">RM</div>
+                    <div><div class="m-name">Rosa Medina</div><div class="m-email">rosa.m@gmail.com</div></div>
+                  </div>
+                </td>
+                <td><span class="role-badge rb-vocalist">Vocalist</span></td>
+                <td><span class="status-dot sd-active"></span><span class="status-text">Active</span></td>
+                <td><span class="joined-date">Mar 2024</span></td>
+                <td><div class="row-actions"><button class="row-btn edit">Edit</button><button class="row-btn promote">Promote</button><button class="row-btn remove">Remove</button></div></td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="member-cell">
+                    <div class="m-avatar" style="background:rgba(160,129,94,.15);color:var(--bronze);border:0.5px solid rgba(160,129,94,.3);">MV</div>
+                    <div><div class="m-name">Marcos Velásquez</div><div class="m-email">marcos.v@gmail.com</div></div>
+                  </div>
+                </td>
+                <td><span class="role-badge rb-musician">Musician · Guitar</span></td>
+                <td><span class="status-dot sd-active"></span><span class="status-text">Active</span></td>
+                <td><span class="joined-date">Apr 2024</span></td>
+                <td><div class="row-actions"><button class="row-btn edit">Edit</button><button class="row-btn promote">Promote</button><button class="row-btn remove">Remove</button></div></td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="member-cell">
+                    <div class="m-avatar" style="background:rgba(155,89,182,.1);color:#A569D0;border:0.5px solid rgba(155,89,182,.3);">DM</div>
+                    <div><div class="m-name">Diego Morales</div><div class="m-email">diego.m@gmail.com</div></div>
+                  </div>
+                </td>
+                <td><span class="role-badge rb-musician">Musician · Drums</span></td>
+                <td><span class="status-dot sd-active"></span><span class="status-text">Active</span></td>
+                <td><span class="joined-date">Apr 2024</span></td>
+                <td><div class="row-actions"><button class="row-btn edit">Edit</button><button class="row-btn promote">Promote</button><button class="row-btn remove">Remove</button></div></td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="member-cell">
+                    <div class="m-avatar" style="background:rgba(26,188,156,.1);color:#76D7C4;border:0.5px solid rgba(26,188,156,.3);">LG</div>
+                    <div><div class="m-name">Lucia García</div><div class="m-email">lucia.g@gmail.com</div></div>
+                  </div>
+                </td>
+                <td><span class="role-badge rb-vocalist">Vocalist</span></td>
+                <td><span class="status-dot sd-inactive"></span><span class="status-text" style="color:var(--muted);">Away</span></td>
+                <td><span class="joined-date">May 2024</span></td>
+                <td><div class="row-actions"><button class="row-btn edit">Edit</button><button class="row-btn promote">Promote</button><button class="row-btn remove">Remove</button></div></td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="member-cell">
+                    <div class="m-avatar" style="background:rgba(230,126,34,.1);color:#F0A83B;border:0.5px solid rgba(230,126,34,.3);">CR</div>
+                    <div><div class="m-name">Carlos Reyes</div><div class="m-email">carlos.r@gmail.com</div></div>
+                  </div>
+                </td>
+                <td><span class="role-badge rb-tech">Tech / AV</span></td>
+                <td><span class="status-dot sd-active"></span><span class="status-text">Active</span></td>
+                <td><span class="joined-date">Jun 2024</span></td>
+                <td><div class="row-actions"><button class="row-btn edit">Edit</button><button class="row-btn promote">Promote</button><button class="row-btn remove">Remove</button></div></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- PENDING INVITES -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Pending Invites</span>
+            <span style="font-size:9px;color:var(--amber);font-weight:500;letter-spacing:1px;">3 AWAITING</span>
+          </div>
+          <div class="pending-item">
+            <div style="width:28px;height:28px;border-radius:50%;background:rgba(230,126,34,.1);border:0.5px solid rgba(230,126,34,.3);display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--amber);">?</div>
+            <span class="pi-email">sofia.m@gmail.com</span>
+            <span class="pi-badge">Pending</span>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);margin:0 8px;">HWL–K4R</span>
+            <button class="pi-revoke">Revoke</button>
+          </div>
+          <div class="pending-item">
+            <div style="width:28px;height:28px;border-radius:50%;background:rgba(230,126,34,.1);border:0.5px solid rgba(230,126,34,.3);display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--amber);">?</div>
+            <span class="pi-email">andres.b@gmail.com</span>
+            <span class="pi-badge">Pending</span>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);margin:0 8px;">HWL–K4R</span>
+            <button class="pi-revoke">Revoke</button>
+          </div>
+          <div class="pending-item">
+            <div style="width:28px;height:28px;border-radius:50%;background:rgba(230,126,34,.1);border:0.5px solid rgba(230,126,34,.3);display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--amber);">?</div>
+            <span class="pi-email">maria.l@hotmail.com</span>
+            <span class="pi-badge">Pending</span>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);margin:0 8px;">HWL–J2M</span>
+            <button class="pi-revoke">Revoke</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: Invite tools -->
+      <div>
+        <div class="invite-card">
+          <div class="ic-header">
+            <div class="ic-title">Active Invite Code</div>
+            <div class="ic-sub">Share this with new members to grant access</div>
+          </div>
+          <div class="ic-body">
+            <div class="code-block">
+              <div class="code-value">HWL–K4R</div>
+              <div class="code-org">Iglesia Calvario Succotz</div>
+              <button class="code-copy">Copy</button>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted2);margin-bottom:14px;">
+              <span>Expires: <span style="color:var(--amber);font-family:'JetBrains Mono',monospace;">May 01, 2026</span></span>
+              <span>Used: <span style="color:var(--vapor);font-family:'JetBrains Mono',monospace;">3×</span></span>
+            </div>
+            <div class="code-actions">
+              <button class="code-action-btn cab-regen">↻ Regenerate</button>
+              <button class="code-action-btn cab-share">↗ Share Code</button>
+            </div>
+
+            <div class="code-history" style="margin-top:18px;">
+              <div class="ch-label">Past Codes</div>
+              <div class="ch-item">
+                <span class="ch-code">HWL–J2M</span>
+                <span class="ch-used">Used 2× · Apr 2026</span>
+                <span class="ch-badge">Expired</span>
+              </div>
+              <div class="ch-item">
+                <span class="ch-code">HWL–P9X</span>
+                <span class="ch-used">Used 5× · Mar 2026</span>
+                <span class="ch-badge">Expired</span>
+              </div>
+              <div class="ch-item">
+                <span class="ch-code">HWL–A3T</span>
+                <span class="ch-used">Used 1× · Jan 2026</span>
+                <span class="ch-badge">Expired</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Permissions reference -->
+        <div class="invite-card">
+          <div class="ic-header"><div class="ic-title">Permission Tiers</div></div>
+          <div class="ic-body">
+            <div style="display:flex;flex-direction:column;gap:10px;">
+              <div style="padding:10px 12px;background:var(--accent-lo);border:0.5px solid rgba(155,89,182,.25);border-radius:3px;">
+                <div style="font-size:10px;font-weight:500;color:var(--accent);letter-spacing:1px;margin-bottom:3px;">Worship Lead</div>
+                <div style="font-size:10px;color:var(--muted2);line-height:1.5;">Full access — add songs, create sets, manage team, generate invite codes.</div>
+              </div>
+              <div style="padding:10px 12px;background:rgba(26,188,156,.06);border:0.5px solid rgba(26,188,156,.2);border-radius:3px;">
+                <div style="font-size:10px;font-weight:500;color:var(--aqua);letter-spacing:1px;margin-bottom:3px;">Member</div>
+                <div style="font-size:10px;color:var(--muted2);line-height:1.5;">View sets, view chord sheets, see their assignments. Cannot edit library.</div>
+              </div>
+              <div style="padding:10px 12px;background:rgba(192,192,192,.05);border:0.5px solid rgba(192,192,192,.15);border-radius:3px;">
+                <div style="font-size:10px;font-weight:500;color:var(--silver);letter-spacing:1px;margin-bottom:3px;">Public</div>
+                <div style="font-size:10px;color:var(--muted2);line-height:1.5;">Read-only library and upcoming sets. No login required.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- INVITE MODAL -->
+<div class="modal-bg" id="modal-bg">
+  <div class="modal">
+    <div class="modal-title" style="margin-bottom:4px;">Invite a Member</div>
+    <div class="modal-sub">They'll receive the current invite code and a link to join Iglesia Calvario Succotz on Hallowly.</div>
+    <label for="m-email">Email Address</label>
+    <input type="email" id="m-email" placeholder="member@example.com"/>
+    <label for="m-role">Assign Role</label>
+    <select id="m-role">
+      <option>Vocalist</option>
+      <option>Musician · Guitar</option>
+      <option>Musician · Keys</option>
+      <option>Musician · Bass</option>
+      <option>Musician · Drums</option>
+      <option>Tech / AV</option>
+      <option>Other</option>
+    </select>
+    <label for="m-note">Personal Note (optional)</label>
+    <input type="text" id="m-note" placeholder="Welcome to the team!"/>
+    <div class="modal-actions">
+      <button class="btn ghost" style="flex:1;">Cancel</button>
+      <button class="btn primary" style="flex:2;">Send Invite →</button>
+    </div>
+  </div>
+</div>
+
+

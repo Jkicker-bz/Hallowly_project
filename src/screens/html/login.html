@@ -1,0 +1,295 @@
+
+<div class="layout">
+
+  <!-- ═══════════ LEFT PANEL ═══════════ -->
+  <div class="left-panel">
+    <div class="panel-glow"></div>
+
+    <div class="panel-logo-area">
+      <svg width="30" height="38" viewBox="0 0 32 40" fill="none">
+        <ellipse cx="16" cy="5.5" rx="11" ry="4.2" stroke="#C0C0C0" stroke-width="1.4" fill="none"/>
+        <path d="M6 12 C5.8 14 5.8 28 6 32 C6.1 34 6.5 35.5 5.5 36.5 C5 37 4.2 37.2 4 37" stroke="#C0C0C0" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+        <path d="M22 11 C26 12.5 29 16 28 20 C27.2 23.5 24 25.5 21 25 C19 24.5 18 23.2 18.5 25.5" stroke="#C0C0C0" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+        <path d="M18.5 25.5 C19.5 29 23 30 25.5 29 C28 28 29 25 28 22" stroke="#C0C0C0" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+        <path d="M18.5 25.5 C18 27 17.8 33 18.5 35 C19.2 37 21 38 22.5 37.5" stroke="#C0C0C0" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+        <line x1="6" y1="24" x2="18.5" y2="24" stroke="#C0C0C0" stroke-width="1.5" stroke-linecap="round"/>
+        <circle cx="19" cy="21.5" r="1.6" fill="#C0C0C0"/>
+        <circle cx="19" cy="26.5" r="1.6" fill="#C0C0C0"/>
+      </svg>
+      <span class="panel-brand">HALLOWLY</span>
+      <!-- Org badge — lit up once user picks/resolves an org -->
+      <div class="panel-org-badge" id="panel-org-badge">
+        <span class="pob-dot"></span>
+        <span class="pob-name" id="panel-org-name"></span>
+      </div>
+    </div>
+
+    <div class="panel-hero">
+      <div class="hero-logo-wrap">
+        <div class="hero-halo-glow"></div>
+        <svg width="110" height="138" viewBox="0 0 32 40" fill="none" style="position:relative;z-index:1;">
+          <ellipse cx="16" cy="5.5" rx="11" ry="4.2" stroke="#C0C0C0" stroke-width="1.2" fill="none"/>
+          <path d="M6 12 C5.8 14 5.8 28 6 32 C6.1 34 6.5 35.5 5.5 36.5 C5 37 4.2 37.2 4 37" stroke="#C0C0C0" stroke-width="1.2" stroke-linecap="round" fill="none"/>
+          <path d="M22 11 C26 12.5 29 16 28 20 C27.2 23.5 24 25.5 21 25 C19 24.5 18 23.2 18.5 25.5" stroke="#C0C0C0" stroke-width="1.2" stroke-linecap="round" fill="none"/>
+          <path d="M18.5 25.5 C19.5 29 23 30 25.5 29 C28 28 29 25 28 22" stroke="#C0C0C0" stroke-width="1.2" stroke-linecap="round" fill="none"/>
+          <path d="M18.5 25.5 C18 27 17.8 33 18.5 35 C19.2 37 21 38 22.5 37.5" stroke="#C0C0C0" stroke-width="1.2" stroke-linecap="round" fill="none"/>
+          <line x1="6" y1="24" x2="18.5" y2="24" stroke="#C0C0C0" stroke-width="1.2" stroke-linecap="round"/>
+          <circle cx="19" cy="21.5" r="1.6" fill="#C0C0C0"/>
+          <circle cx="19" cy="26.5" r="1.6" fill="#C0C0C0"/>
+        </svg>
+      </div>
+      <h2 class="panel-headline">Ease the worry of<br/><em>those who serve.</em></h2>
+      <p class="panel-sub">Your worship team's song library, chord sheets, and set lists — always prepared, always ready.</p>
+    </div>
+
+    <div class="panel-bottom">
+      <p class="panel-bottom-label">Next service · APR 27</p>
+      <div class="preview-pills">
+        <div class="preview-pill"><span class="pp-label">Opening</span><span class="pp-song">Goodness of God</span><span class="pp-key">Key of G</span></div>
+        <div class="preview-pill"><span class="pp-label">Offering</span><span class="pp-song">Oceans</span><span class="pp-key">Key of D</span></div>
+        <div class="preview-pill"><span class="pp-label">Closing</span><span class="pp-song">Build My Life</span><span class="pp-key">Key of E</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ RIGHT PANEL ═══════════ -->
+  <div class="right-panel">
+    <div class="form-card">
+
+      <div class="tab-bar">
+        <button class="tab-btn active" id="tab-login"   >Sign In</button>
+        <button class="tab-btn"        id="tab-register">Join Team</button>
+      </div>
+
+      <!-- ─────────────── LOGIN ─────────────── -->
+      <div class="form-view visible" id="view-login">
+        <h1 class="form-heading">Welcome back.</h1>
+        <p class="form-sub">Sign in to access your organization's library, set lists, and chord sheets.</p>
+
+        <!-- Org auto-detected badge (shown after email blur) -->
+        <div id="login-org-row" style="display:none; margin-bottom:16px;">
+          <label>Organization</label>
+          <div class="org-pill visible" id="login-org-pill">
+            <div class="op-avatar" id="login-op-av"></div>
+            <span class="op-name"  id="login-op-name"></span>
+            <span style="font-size:9px;color:var(--muted2);letter-spacing:1px;">Auto-detected</span>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label for="l-email">Email Address</label>
+          <input type="email" id="l-email" placeholder="you@example.com" autocomplete="email"/>
+        </div>
+
+        <div class="field-group">
+          <label for="l-pw">Password</label>
+          <div class="input-wrap">
+            <input type="password" id="l-pw" placeholder="••••••••" autocomplete="current-password"/>
+            <button class="pw-toggle" type="button">👁</button>
+          </div>
+        </div>
+
+        <button class="btn-submit primary" style="margin-top:8px;">Sign In →</button>
+
+        <div class="form-footer-links" style="margin-top:16px;">
+          <a href="#">Forgot password?</a>
+          <button>No account? Join team →</button>
+        </div>
+
+        <div class="divider" style="margin-top:26px;">
+          <div class="divider-line"></div><span class="divider-text">OR</span><div class="divider-line"></div>
+        </div>
+
+        <p style="font-size:11px;color:var(--muted2);text-align:center;line-height:1.7;">
+          Browsing without an account?<br/>
+          <a href="/ui/library" style="color:var(--accent);text-decoration:none;">View public Song Library →</a>
+        </p>
+      </div>
+
+      <!-- ─────────────── REGISTER (4 steps) ─────────────── -->
+      <div class="form-view" id="view-register">
+
+        <div class="step-indicator" id="step-indicator">
+          <div class="sdot active" id="sd1"></div><div class="sline"></div>
+          <div class="sdot" id="sd2"></div><div class="sline"></div>
+          <div class="sdot" id="sd3"></div><div class="sline"></div>
+          <div class="sdot" id="sd4"></div>
+        </div>
+
+        <!-- STEP 1 · Find Organization -->
+        <div id="rs1">
+          <p class="step-label">Step 1 of 4 · Organization</p>
+          <h1 class="form-heading">Find your church.</h1>
+          <p class="form-sub">
+            Search for your church. Every org's library and set lists are private to their team — you'll only see content from your church.
+          </p>
+
+          <div class="field-group">
+            <label>Search Organization</label>
+            <div class="org-search-wrap" id="org-wrap">
+              <span class="org-search-icon">⌕</span>
+              <input type="text" class="org-search-input" id="org-input"
+                     placeholder="Type your church name…" autocomplete="off"
+                    />
+              <div class="org-dropdown" id="org-dd">
+                <div class="org-option" data-id="iglesia-calvario" data-name="Iglesia Calvario Succotz" data-meta="Succotz, Belize · 12 members" data-init="IC" data-bg="rgba(155,89,182,0.18)" data-color="#9B59B6">
+                  <div class="org-avatar" style="background:rgba(155,89,182,0.18);color:#9B59B6;">IC</div>
+                  <div class="org-info"><div class="org-name">Iglesia Calvario Succotz</div><div class="org-meta">Succotz, Belize · 12 members</div></div>
+                  <span class="org-check">✓</span>
+                </div>
+                <div class="org-option" data-id="grace-bz" data-name="Grace Community Church" data-meta="Belize City, BZ · 8 members" data-init="GC" data-bg="rgba(26,188,156,0.18)" data-color="#1ABC9C">
+                  <div class="org-avatar" style="background:rgba(26,188,156,0.18);color:#1ABC9C;">GC</div>
+                  <div class="org-info"><div class="org-name">Grace Community Church</div><div class="org-meta">Belize City, BZ · 8 members</div></div>
+                  <span class="org-check">✓</span>
+                </div>
+                <div class="org-option" data-id="calvary-belmopan" data-name="Calvary Chapel Belmopan" data-meta="Belmopan, BZ · 6 members" data-init="CB" data-bg="rgba(230,126,34,0.18)" data-color="#E67E22">
+                  <div class="org-avatar" style="background:rgba(230,126,34,0.18);color:#E67E22;">CB</div>
+                  <div class="org-info"><div class="org-name">Calvary Chapel Belmopan</div><div class="org-meta">Belmopan, BZ · 6 members</div></div>
+                  <span class="org-check">✓</span>
+                </div>
+                <div class="org-option" data-id="new-life-dangriga" data-name="New Life Church Dangriga" data-meta="Dangriga, BZ · 9 members" data-init="NL" data-bg="rgba(160,129,94,0.18)" data-color="#A0815E">
+                  <div class="org-avatar" style="background:rgba(160,129,94,0.18);color:#A0815E;">NL</div>
+                  <div class="org-info"><div class="org-name">New Life Church Dangriga</div><div class="org-meta">Dangriga, BZ · 9 members</div></div>
+                  <span class="org-check">✓</span>
+                </div>
+                <div class="org-option" id="opt-notfound" style="display:none;">
+                  <div class="org-avatar" style="background:rgba(136,135,128,0.15);color:#888780;">?</div>
+                  <div class="org-info"><div class="org-name">My church isn't listed</div><div class="org-meta">Request it to be added</div></div>
+                  <span class="org-check">✓</span>
+                </div>
+              </div>
+            </div>
+            <!-- Pill after selection -->
+            <div class="org-pill" id="org-pill" style="margin-top:8px;">
+              <div class="op-avatar" id="op-av"></div>
+              <span class="op-name" id="op-name"></span>
+              <button class="op-change">Change</button>
+            </div>
+          </div>
+
+          <button class="btn-submit primary" id="btn-s1" disabled>Continue →</button>
+          <div class="form-footer-links" style="margin-top:14px;">
+            <button>← Back to Sign In</button>
+          </div>
+        </div>
+
+        <!-- STEP 2 · Invite Code -->
+        <div id="rs2" style="display:none;">
+          <p class="step-label">Step 2 of 4 · Access</p>
+          <h1 class="form-heading">Enter your code.</h1>
+          <p class="form-sub">
+            Your Worship Lead at <strong id="s2-org" style="color:var(--vapor);font-weight:500;"></strong> sent you a 6-character invite code. It grants you access to their private library.
+          </p>
+          <!-- Org context chip -->
+          <div class="org-pill visible" id="s2-pill" style="margin-bottom:18px;">
+            <div class="op-avatar" id="s2-av"></div>
+            <span class="op-name"  id="s2-name"></span>
+            <button class="op-change">Change</button>
+          </div>
+
+          <div class="field-group">
+            <label for="inv-code">Invite Code</label>
+            <div class="input-wrap">
+              <input type="text" id="inv-code" class="code-input" placeholder="HWL–···" maxlength="9" autocomplete="off"/>
+            </div>
+            <p class="field-hint" id="code-hint">Enter the code your Worship Lead sent you.</p>
+          </div>
+
+          <button class="btn-submit primary" id="btn-s2" disabled>Verify Code →</button>
+          <div class="form-footer-links" style="margin-top:14px;">
+            <button>← Back</button>
+            <a href="#">Request access instead</a>
+          </div>
+        </div>
+
+        <!-- STEP 3 · Account Details -->
+        <div id="rs3" style="display:none;">
+          <p class="step-label">Step 3 of 4 · Account</p>
+          <h1 class="form-heading">Create account.</h1>
+          <p class="form-sub">Your personal profile for <strong id="s3-org" style="color:var(--vapor);font-weight:500;"></strong>.</p>
+
+          <div class="field-row">
+            <div><label for="r-fn">First Name</label><input type="text" id="r-fn" placeholder="Ana" autocomplete="given-name"/></div>
+            <div><label for="r-ln">Last Name</label><input type="text" id="r-ln" placeholder="Sánchez" autocomplete="family-name"/></div>
+          </div>
+          <div class="field-group">
+            <label for="r-em">Email Address</label>
+            <input type="email" id="r-em" placeholder="you@example.com" autocomplete="email"/>
+          </div>
+          <div class="field-group">
+            <label for="r-pw">Password</label>
+            <div class="input-wrap">
+              <input type="password" id="r-pw" placeholder="••••••••" autocomplete="new-password"/>
+              <button class="pw-toggle" type="button">👁</button>
+            </div>
+            <div class="pw-strength">
+              <div class="pw-bar"><div class="pw-fill" id="pf1"></div></div>
+              <div class="pw-bar"><div class="pw-fill" id="pf2"></div></div>
+              <div class="pw-bar"><div class="pw-fill" id="pf3"></div></div>
+              <span class="pw-label" id="pw-lbl">—</span>
+            </div>
+          </div>
+
+          <button class="btn-submit primary">Continue →</button>
+          <div class="form-footer-links" style="margin-top:14px;"><button>← Back</button></div>
+        </div>
+
+        <!-- STEP 4 · Role -->
+        <div id="rs4" style="display:none;">
+          <p class="step-label">Step 4 of 4 · Role</p>
+          <h1 class="form-heading">Your role.</h1>
+          <p class="form-sub">How will you serve at <strong id="s4-org" style="color:var(--vapor);font-weight:500;"></strong>? Your lead can update this anytime.</p>
+
+          <div class="field-group">
+            <label>Select Your Role</label>
+            <div class="role-selector">
+              <div class="role-opt selected" id="role-vocalist" ><div class="role-opt-title">Vocalist</div><div class="role-opt-desc">Singer · Lead · Backup</div></div>
+              <div class="role-opt"          id="role-musician" ><div class="role-opt-title">Musician</div><div class="role-opt-desc">Guitar · Keys · Bass · Drums</div></div>
+              <div class="role-opt"          id="role-tech"     ><div class="role-opt-title">Tech / AV</div><div class="role-opt-desc">Sound · Projection · Lighting</div></div>
+              <div class="role-opt"          id="role-other"    ><div class="role-opt-title">Other</div><div class="role-opt-desc">Observer · Admin · Guest</div></div>
+            </div>
+          </div>
+
+          <div class="check-row" style="margin-top:16px;">
+            <input type="checkbox" id="terms" checked/>
+            <label class="check-label" for="terms">I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.</label>
+          </div>
+
+          <button class="btn-submit primary">Join Hallowly →</button>
+          <div class="form-footer-links" style="margin-top:14px;"><button>← Back</button></div>
+        </div>
+
+        <!-- SUCCESS -->
+        <div id="rs-ok" style="display:none;text-align:center;padding:16px 0;">
+          <svg width="52" height="64" viewBox="0 0 32 40" fill="none" style="margin:0 auto 20px;display:block;">
+            <ellipse cx="16" cy="5.5" rx="11" ry="4.2" stroke="#9B59B6" stroke-width="1.2" fill="none"/>
+            <path d="M6 12 C5.8 14 5.8 28 6 32 C6.1 34 6.5 35.5 5.5 36.5 C5 37 4.2 37.2 4 37" stroke="#9B59B6" stroke-width="1.2" stroke-linecap="round" fill="none"/>
+            <path d="M22 11 C26 12.5 29 16 28 20 C27.2 23.5 24 25.5 21 25 C19 24.5 18 23.2 18.5 25.5" stroke="#9B59B6" stroke-width="1.2" stroke-linecap="round" fill="none"/>
+            <path d="M18.5 25.5 C19.5 29 23 30 25.5 29 C28 28 29 25 28 22" stroke="#9B59B6" stroke-width="1.2" stroke-linecap="round" fill="none"/>
+            <path d="M18.5 25.5 C18 27 17.8 33 18.5 35 C19.2 37 21 38 22.5 37.5" stroke="#9B59B6" stroke-width="1.2" stroke-linecap="round" fill="none"/>
+            <line x1="6" y1="24" x2="18.5" y2="24" stroke="#9B59B6" stroke-width="1.2" stroke-linecap="round"/>
+            <circle cx="19" cy="21.5" r="1.6" fill="#9B59B6"/>
+            <circle cx="19" cy="26.5" r="1.6" fill="#9B59B6"/>
+          </svg>
+          <h2 class="form-heading" style="margin-bottom:10px;">You're in.</h2>
+          <!-- Which org they joined -->
+          <div class="success-org-tag" style="justify-content:center;">
+            <div class="op-avatar" id="ok-av" style="width:22px;height:22px;border-radius:2px;font-size:9px;font-weight:600;display:flex;align-items:center;justify-content:center;font-family:'Montserrat',sans-serif;"></div>
+            <span id="ok-name" style="font-size:12px;color:var(--muted2);font-weight:400;"></span>
+          </div>
+          <p class="form-sub" style="margin-bottom:28px;max-width:320px;margin-left:auto;margin-right:auto;">
+            Welcome to the team. Your Worship Lead has been notified. You now have access to your organization's library and set lists.
+          </p>
+          <a href="/ui/dashboard" style="display:block;font-family:'Montserrat',sans-serif;font-size:11px;font-weight:500;letter-spacing:3px;text-transform:uppercase;background:var(--accent);color:var(--vapor);border-radius:3px;padding:14px;text-decoration:none;text-align:center;">
+            Go to Dashboard →
+          </a>
+        </div>
+
+      </div>
+      <!-- end register -->
+    </div>
+  </div>
+
+</div>
+
+

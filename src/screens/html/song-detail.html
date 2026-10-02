@@ -1,0 +1,201 @@
+
+
+<nav>
+  <div class="nav-left">
+    <a href="/ui/library" class="back-link">← Song Library</a>
+    <div class="nav-divider"></div>
+    <span class="breadcrumb">Goodness of God</span>
+  </div>
+  <div class="nav-right">
+    <div class="view-toggle">
+      <button class="vt-btn" id="vt-public">Public</button>
+      <button class="vt-btn active" id="vt-member">Member</button>
+    </div>
+    <a href="/ui/chord-editor" class="btn ghost" id="btn-edit">Edit Chords</a>
+    <button class="btn ghost">↓ Print</button>
+  </div>
+</nav>
+
+<!-- Edit bar — member view only -->
+<div class="edit-bar" id="edit-bar">
+  <span class="eb-dot"></span>
+  <span class="eb-text">Viewing as <strong>Joel Morales</strong> · Worship Lead · Iglesia Calvario Succotz</span>
+  <a href="/ui/chord-editor" class="eb-link">Edit this chord sheet →</a>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-glow"></div>
+  <div class="hero-inner">
+    <div>
+      <div class="hero-eyebrow">Iglesia Calvario Succotz · Song Library</div>
+      <h1 class="hero-title">Goodness of God</h1>
+      <div class="hero-artist">Bethel Music · Jenn Johnson</div>
+      <div class="hero-chips">
+        <span class="hchip hc-key" id="hero-key">Key of G</span>
+        <span class="hchip hc-style">Contemporary</span>
+        <span class="hchip hc-bpm">68 BPM · 4/4</span>
+        <span class="hchip hc-lang">English</span>
+      </div>
+      <div class="hero-actions">
+        <a href="/ui/chord-editor" class="btn primary" id="btn-hero-edit">Edit Chords</a>
+        <button class="btn ghost">↓ Print PDF</button>
+        <button class="btn ghost">+ Add to Set</button>
+      </div>
+    </div>
+    <div class="hero-stats">
+      <div class="hs-item"><div class="hs-val">11</div><div class="hs-label">Times Used</div></div>
+      <div class="hs-item"><div class="hs-val">G</div><div class="hs-label">Original Key</div></div>
+      <div class="hs-item"><div class="hs-val">2020</div><div class="hs-label">Released</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- BODY -->
+<div class="page-body">
+  <div>
+    <!-- Chord Header -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <div class="section-title">Chord Sheet</div>
+      <div class="chord-toolbar">
+        <span class="ct-label">Transpose</span>
+        <button class="ct-btn">♭</button>
+        <span class="ct-key" id="ct-key">G</span>
+        <button class="ct-btn">♯</button>
+        <div class="ct-sep"></div>
+        <span class="ct-label">Size</span>
+        <button class="ct-btn" style="font-size:14px;">−</button>
+        <span class="ct-fs-val" id="ct-fs">13</span>
+        <button class="ct-btn" style="font-size:14px;">+</button>
+      </div>
+    </div>
+
+    <!-- Chord content -->
+    <div class="chord-lock" id="chord-lock">
+      <div class="chord-display" id="chord-display" style="font-size:13px;">
+        <span class="cd-section">[Intro]</span>
+        <span class="cd-chords">G    D    Em   C</span>
+        <span class="cd-blank"></span>
+
+        <span class="cd-section">[Verse 1]</span>
+        <span class="cd-chords">G             D</span>
+        <span class="cd-lyrics">Lyric line goes here</span>
+        <span class="cd-chords">Em                  C</span>
+        <span class="cd-lyrics">Lyric line goes here</span>
+        <span class="cd-chords">G              D</span>
+        <span class="cd-lyrics">Lyric line goes here</span>
+        <span class="cd-chords">Em                  C</span>
+        <span class="cd-lyrics">Lyric line goes here</span>
+        <span class="cd-chords">G              D          Em    C</span>
+        <span class="cd-lyrics">Lyric line goes here</span>
+        <span class="cd-blank"></span>
+
+        <span class="cd-section">[Pre-Chorus]</span>
+        <span class="cd-chords">Em          D         G       C</span>
+        <span class="cd-lyrics">Lyric line goes here</span>
+        <span class="cd-chords">Em          D         G       C</span>
+        <span class="cd-lyrics">Lyric line goes here</span>
+        <span class="cd-blank"></span>
+
+        <span class="cd-section">[Chorus]</span>
+        <span class="cd-chords">G               D</span>
+        <span class="cd-lyrics">Lyric line goes here</span>
+        <span class="cd-chords">Em              C</span>
+        <span class="cd-lyrics">Lyric line goes here</span>
+        <span class="cd-chords">G               D</span>
+        <span class="cd-lyrics">Lyric line goes here</span>
+        <span class="cd-chords">Em         C</span>
+        <span class="cd-lyrics">Lyric line goes here</span>
+        <span class="cd-blank"></span>
+
+        <span class="cd-section">[Bridge]</span>
+        <span class="cd-chords">Em   D        G       C</span>
+        <span class="cd-lyrics">Lyric line goes here</span>
+        <span class="cd-chords">Em   D        G       C</span>
+        <span class="cd-lyrics">Lyric line goes here</span>
+        <span class="cd-blank"></span>
+
+        <span class="cd-section">[Outro]</span>
+        <span class="cd-chords">G    D    Em   C  // Repeat x4, end on G</span>
+        <span class="cd-blank"></span>
+        <span class="cd-note">// Capo 0 · 68 BPM · Pre-Chorus → Chorus flows directly, no break</span>
+      </div>
+
+      <!-- Public lock overlay -->
+      <div class="lock-overlay" id="lock-overlay" style="display:none;">
+        <div class="lo-text"><strong>Full chord sheet</strong> is available<br/>to signed-in team members only.</div>
+        <a href="/ui/login" class="btn primary" style="font-size:10px;">Sign In to View →</a>
+      </div>
+    </div>
+
+    <!-- Set History -->
+    <div style="margin-top:32px;">
+      <div class="section-title">Set History</div>
+      <div class="set-history">
+        <div class="sh-row"><span class="sh-date">APR 20</span><span class="sh-name">Sunday Morning Service</span><span class="sh-key">G</span><span class="sh-tag sht-c">Contemporary</span></div>
+        <div class="sh-row"><span class="sh-date">APR 06</span><span class="sh-name">Easter Sunday</span><span class="sh-key">G</span><span class="sh-tag sht-c">Contemporary</span></div>
+        <div class="sh-row"><span class="sh-date">MAR 16</span><span class="sh-name">Sunday Morning Service</span><span class="sh-key">A</span><span class="sh-tag sht-c">Contemporary</span></div>
+        <div class="sh-row"><span class="sh-date">FEB 23</span><span class="sh-name">Youth Retreat — Night Session</span><span class="sh-key">G</span><span class="sh-tag sht-c">Youth</span></div>
+        <div class="sh-row"><span class="sh-date">FEB 02</span><span class="sh-name">Sunday Bilingual</span><span class="sh-key">G</span><span class="sh-tag sht-g">Bilingual</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SIDEBAR -->
+  <div class="side-panels">
+    <div class="panel">
+      <div class="panel-hd">Assigned Singers</div>
+      <div class="panel-body">
+        <div class="singer-row">
+          <div class="s-av" style="background:rgba(155,89,182,.18);color:var(--accent);border:0.5px solid var(--accent);">JM</div>
+          <div><div class="s-name">Joel Morales</div><div class="s-role">Worship Lead</div></div>
+          <span class="s-tag st-lead">Lead</span>
+        </div>
+        <div class="singer-row">
+          <div class="s-av" style="background:rgba(26,188,156,.15);color:var(--aqua);border:0.5px solid rgba(26,188,156,.4);">AS</div>
+          <div><div class="s-name">Ana Sánchez</div><div class="s-role">Vocalist</div></div>
+          <span class="s-tag st-lead">Lead</span>
+        </div>
+        <div class="singer-row">
+          <div class="s-av" style="background:rgba(230,126,34,.15);color:var(--amber);border:0.5px solid rgba(230,126,34,.3);">RM</div>
+          <div><div class="s-name">Rosa Medina</div><div class="s-role">Vocalist</div></div>
+          <span class="s-tag st-back">Backup</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-hd">Key Variants</div>
+      <div class="panel-body">
+        <div class="key-vars">
+          <div class="kv-row active"><span class="kv-key">G</span><span class="kv-label">Original</span><span class="kv-capo">No capo</span></div>
+          <div class="kv-row"><span class="kv-key">A</span><span class="kv-label">Higher register</span><span class="kv-capo">Capo 2</span></div>
+          <div class="kv-row"><span class="kv-key">F</span><span class="kv-label">Lower register</span><span class="kv-capo">No capo</span></div>
+          <div class="kv-row"><span class="kv-key">E</span><span class="kv-label">Guitar-friendly</span><span class="kv-capo">No capo</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-hd">Tags</div>
+      <div class="panel-body">
+        <div class="tags-wrap">
+          <span class="tag-pill">Easter</span>
+          <span class="tag-pill">Offering</span>
+          <span class="tag-pill">Worship</span>
+          <span class="tag-pill">Slow</span>
+          <span class="tag-pill">English</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Public CTA — only shown in public mode -->
+    <div class="cta-box" id="public-cta" style="display:none;">
+      <div class="cta-title">Team Members</div>
+      <p class="cta-text">Sign in to view the full chord sheet, transpose keys, and see your assigned songs.</p>
+      <a href="/ui/login" class="cta-link">Sign In →</a>
+    </div>
+  </div>
+</div>
+
+

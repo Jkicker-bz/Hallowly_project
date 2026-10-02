@@ -1,0 +1,168 @@
+
+
+<!-- ── NAV ── -->
+<nav>
+  <a href="/ui/landing" class="nav-logo">
+    <svg width="28" height="34" viewBox="0 0 32 40" fill="none">
+      <ellipse cx="16" cy="5.5" rx="11" ry="4.2" stroke="#C0C0C0" stroke-width="1.4" fill="none"/>
+      <path d="M6 12 C5.8 14 5.8 28 6 32 C6.1 34 6.5 35.5 5.5 36.5 C5 37 4.2 37.2 4 37" stroke="#C0C0C0" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+      <path d="M22 11 C26 12.5 29 16 28 20 C27.2 23.5 24 25.5 21 25 C19 24.5 18 23.2 18.5 25.5" stroke="#C0C0C0" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+      <path d="M18.5 25.5 C19.5 29 23 30 25.5 29 C28 28 29 25 28 22" stroke="#C0C0C0" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+      <path d="M18.5 25.5 C18 27 17.8 33 18.5 35 C19.2 37 21 38 22.5 37.5" stroke="#C0C0C0" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+      <line x1="6" y1="24" x2="18.5" y2="24" stroke="#C0C0C0" stroke-width="1.5" stroke-linecap="round"/>
+      <circle cx="19" cy="21.5" r="1.6" fill="#C0C0C0"/><circle cx="19" cy="26.5" r="1.6" fill="#C0C0C0"/>
+    </svg>
+    <span class="nav-brand">HALLOWLY</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="/ui/landing">Home</a></li>
+    <li><a href="/ui/library" class="active">Song Library</a></li>
+    <li><a href="/ui/setlists">Set Lists</a></li>
+    <li><a href="/ui/dashboard">Dashboard</a></li>
+  </ul>
+  <div class="nav-actions">
+    <a href="/ui/login" class="btn-ghost">Sign In</a>
+    <a href="/ui/add-song" class="btn-primary">+ Add Song</a>
+  </div>
+</nav>
+
+<!-- ── HERO ── -->
+<div class="hero">
+  <div class="hero-glow"></div>
+  <div class="hero-inner">
+    <p class="hero-eyebrow">Iglesia Calvario Succotz · 124 Songs</p>
+    <h1 class="hero-title">Song <em>Library</em></h1>
+    <p class="hero-sub">Browse the full collection — keys, styles, and chord access. Full sheets available to signed-in team members.</p>
+    <div class="filter-bar">
+      <div class="search-field">
+        <span class="search-icon">⌕</span>
+        <input type="text" id="search-input" placeholder="Search by title, artist, or key…"/>
+      </div>
+      <select class="filter-select" id="style-filter">
+        <option value="">All Styles</option>
+        <option value="contemporary">Contemporary</option>
+        <option value="gospel">Gospel</option>
+        <option value="praise">Praise</option>
+        <option value="latin">Latin / Cumbia</option>
+        <option value="hymn">Hymn</option>
+      </select>
+      <select class="filter-select" id="key-filter">
+        <option value="">All Keys</option>
+        <option>C</option><option>D</option><option>E</option>
+        <option>F</option><option>G</option><option>A</option>
+        <option>B</option><option>B♭</option><option>E♭</option>
+      </select>
+      <button class="fchip active" id="chip-all"   >All</button>
+      <button class="fchip"        id="chip-used"  >Most Used</button>
+      <button class="fchip"        id="chip-recent">Recently Added</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── BODY ── -->
+<div class="page-body">
+  <div class="main-col">
+    <div class="col-header">
+      <p class="col-count"><strong id="visible-count">124</strong> songs</p>
+      <div class="col-controls">
+        <select class="sort-select" id="sort-select">
+          <option value="alpha">A → Z</option>
+          <option value="key">By Key</option>
+          <option value="sets">Most Used</option>
+          <option value="recent">Recently Added</option>
+        </select>
+        <a href="/ui/add-song" class="add-song-btn">+ Add Song</a>
+      </div>
+    </div>
+
+    <!-- ── CARD GRID ── -->
+    <div class="card-grid" id="card-grid">
+      <!-- Populated by JS -->
+    </div>
+
+    <div class="pagination" id="pagination">
+      <!-- Populated by JS -->
+    </div>
+  </div>
+
+  <!-- ── SIDEBAR ── -->
+  <div class="side-panels">
+
+    <div class="panel">
+      <div class="panel-hd">Styles</div>
+      <div class="panel-body">
+        <div class="style-row"><span class="style-name">Contemporary</span><div class="sbar-wrap"><div class="sbar-fill" style="width:72%;background:var(--accent);"></div></div><span class="sbar-ct">52</span></div>
+        <div class="style-row"><span class="style-name">Gospel</span><div class="sbar-wrap"><div class="sbar-fill" style="width:25%;background:var(--bronze);"></div></div><span class="sbar-ct">18</span></div>
+        <div class="style-row"><span class="style-name">Latin / Cumbia</span><div class="sbar-wrap"><div class="sbar-fill" style="width:19%;background:var(--amber);"></div></div><span class="sbar-ct">14</span></div>
+        <div class="style-row"><span class="style-name">Praise</span><div class="sbar-wrap"><div class="sbar-fill" style="width:17%;background:var(--aqua);"></div></div><span class="sbar-ct">12</span></div>
+        <div class="style-row"><span class="style-name">Hymn</span><div class="sbar-wrap"><div class="sbar-fill" style="width:12%;background:var(--silver);"></div></div><span class="sbar-ct">9</span></div>
+        <div class="style-row"><span class="style-name">Other</span><div class="sbar-wrap"><div class="sbar-fill" style="width:9%;background:var(--muted);"></div></div><span class="sbar-ct">19</span></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-hd">Common Keys</div>
+      <div class="panel-body">
+        <div class="key-cloud">
+          <span class="key-pill hot">G</span>
+          <span class="key-pill hot">D</span>
+          <span class="key-pill hot">A</span>
+          <span class="key-pill">C</span>
+          <span class="key-pill">E</span>
+          <span class="key-pill">F</span>
+          <span class="key-pill">B♭</span>
+          <span class="key-pill">E♭</span>
+          <span class="key-pill">B</span>
+          <span class="key-pill">F♯</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-hd">Recent Set Lists</div>
+      <div class="panel-body">
+        <div class="rset-item"><span class="rsi-date">APR 20</span><span class="rsi-name">Sunday Morning</span><span class="rsi-ct">7</span></div>
+        <div class="rset-item"><span class="rsi-date">APR 13</span><span class="rsi-name">Youth Night</span><span class="rsi-ct">6</span></div>
+        <div class="rset-item"><span class="rsi-date">APR 06</span><span class="rsi-name">Easter Service</span><span class="rsi-ct">9</span></div>
+        <div class="rset-item"><span class="rsi-date">MAR 30</span><span class="rsi-name">Palm Sunday</span><span class="rsi-ct">8</span></div>
+        <div class="rset-item"><span class="rsi-date">MAR 23</span><span class="rsi-name">Sunday Bilingual</span><span class="rsi-ct">7</span></div>
+      </div>
+    </div>
+
+    <div class="team-cta">
+      <p class="tc-eyebrow">Team Members</p>
+      <p class="tc-text">Sign in to view full chord sheets, edit songs, and manage set lists.</p>
+      <a href="/ui/login" class="tc-link">Sign In to Your Team →</a>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── QUICK VIEW MODAL ── -->
+<div class="modal-bg" id="song-modal">
+  <div class="modal">
+    <div class="modal-stripe" id="modal-stripe"></div>
+    <div class="modal-head">
+      <div>
+        <div class="modal-title" id="modal-title"></div>
+        <div class="modal-artist" id="modal-artist"></div>
+      </div>
+      <button class="modal-close">×</button>
+    </div>
+    <div class="modal-chips" id="modal-chips"></div>
+    <div class="modal-body">
+      <div class="chord-preview" id="modal-chords"></div>
+      <div class="lock-notice">
+        <span>🔒 &nbsp;Full chord sheet available to signed-in team members only.</span>
+        <a href="/ui/login">Sign in →</a>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="mf-btn ghost">Close</button>
+      <a href="/ui/song-detail" class="mf-btn ghost">Full Page →</a>
+      <a href="/ui/chord-editor" class="mf-btn primary">Edit Chords</a>
+    </div>
+  </div>
+</div>
+
+

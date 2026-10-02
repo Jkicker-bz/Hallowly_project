@@ -1,0 +1,176 @@
+
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <svg width="26" height="32" viewBox="0 0 32 40" fill="none">
+      <ellipse cx="16" cy="5.5" rx="11" ry="4.2" stroke="#C0C0C0" stroke-width="1.4" fill="none"/>
+      <path d="M6 12 C5.8 14 5.8 28 6 32 C6.1 34 6.5 35.5 5.5 36.5 C5 37 4.2 37.2 4 37" stroke="#C0C0C0" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+      <path d="M22 11 C26 12.5 29 16 28 20 C27.2 23.5 24 25.5 21 25 C19 24.5 18 23.2 18.5 25.5" stroke="#C0C0C0" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+      <path d="M18.5 25.5 C19.5 29 23 30 25.5 29 C28 28 29 25 28 22" stroke="#C0C0C0" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+      <path d="M18.5 25.5 C18 27 17.8 33 18.5 35 C19.2 37 21 38 22.5 37.5" stroke="#C0C0C0" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+      <line x1="6" y1="24" x2="18.5" y2="24" stroke="#C0C0C0" stroke-width="1.5" stroke-linecap="round"/>
+      <circle cx="19" cy="21.5" r="1.6" fill="#C0C0C0"/><circle cx="19" cy="26.5" r="1.6" fill="#C0C0C0"/>
+    </svg>
+    <span class="sidebar-logo-text">HALLOWLY</span>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">Overview</div>
+    <a class="nav-item" href="/ui/dashboard"><span class="nav-icon">⬡</span> Dashboard</a>
+    <a class="nav-item" href="/ui/library"><span class="nav-icon">◈</span> Song Library</a>
+    <a class="nav-item active" href="/ui/setlists"><span class="nav-icon">≡</span> Set Lists <span class="nav-badge">38</span></a>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">Manage</div>
+    <a class="nav-item" href="/ui/chord-editor"><span class="nav-icon">♩</span> Chord Sheets</a>
+    <a class="nav-item" href="/ui/singers"><span class="nav-icon">◎</span> Singer Profiles</a>
+    <a class="nav-item" href="/ui/team"><span class="nav-icon">⊞</span> Team Access</a>
+  </div>
+  <div class="sidebar-bottom">
+    <div class="user-card">
+      <div class="user-avatar">JM</div>
+      <div><div class="user-name">Joel Morales</div><div class="user-role">Worship Lead · Iglesia Calvario</div></div>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <a href="/ui/setlists" class="back-btn">← Set Lists</a>
+      <div class="topbar-divider"></div>
+      <span class="topbar-title">Create Set List</span>
+    </div>
+    <div class="topbar-right">
+      <button class="btn ghost">Save Draft</button>
+      <button class="btn primary">Publish Set List →</button>
+    </div>
+  </div>
+
+  <div class="body-layout">
+
+    <!-- SONG PICKER -->
+    <div class="picker-panel">
+      <div class="panel-head">
+        <p class="panel-eyebrow">Iglesia Calvario · 124 songs</p>
+        <h2 class="panel-heading">Song Library</h2>
+        <div class="search-wrap">
+          <span class="search-icon">⌕</span>
+          <input class="search-input" placeholder="Search songs…" type="text"/>
+        </div>
+        <div class="filter-row">
+          <button class="fchip active">All</button>
+          <button class="fchip">Contemporary</button>
+          <button class="fchip">Gospel</button>
+          <button class="fchip">Latin</button>
+        </div>
+      </div>
+      <div class="picker-scroll" id="picker-scroll">
+        <!-- Songs populated by JS -->
+      </div>
+    </div>
+
+    <!-- SET ORDER -->
+    <div class="order-panel">
+      <div class="order-head">
+        <div class="order-count" id="order-count">0 songs added</div>
+        <div style="font-size:13px;font-weight:500;color:var(--vapor);">Set Order</div>
+        <div style="font-size:10px;color:var(--muted2);margin-top:2px;">Drag to reorder · Click song to add</div>
+      </div>
+      <div class="order-scroll" id="order-list">
+        <div class="empty-state" id="empty-state">
+          <div class="empty-icon">≡</div>
+          <div class="empty-text">No songs yet.<br/>Click songs from the library to add them here.</div>
+        </div>
+      </div>
+      <div class="order-footer">
+        <div class="duration-row">
+          <span class="dur-label">Est. Duration</span>
+          <span class="dur-value" id="total-duration">0:00</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- DETAILS -->
+    <div class="details-panel">
+      <div class="details-section">
+        <div class="ds-title">Set Details</div>
+        <label>Set Title</label>
+        <input type="text" placeholder="e.g. Sunday Morning Service"/>
+
+        <label>Event Type</label>
+        <div class="event-chips">
+          <button class="echip active">Sunday AM</button>
+          <button class="echip">Youth Night</button>
+          <button class="echip">Retreat</button>
+          <button class="echip">Special</button>
+          <button class="echip">Bilingual</button>
+          <button class="echip">Other</button>
+        </div>
+
+        <label>Date</label>
+        <div class="date-time-row" style="margin-bottom:12px;">
+          <input type="date" value="2026-04-27"/>
+          <input type="time" value="09:00"/>
+        </div>
+
+        <label>Style / Tone</label>
+        <select style="margin-bottom:0;">
+          <option>Contemporary</option>
+          <option>Gospel</option>
+          <option>Bilingual</option>
+          <option>Youth</option>
+          <option>Mixed</option>
+        </select>
+      </div>
+
+      <div class="details-section">
+        <div class="ds-title">Team</div>
+        <div class="member-list">
+          <div class="member-row">
+            <div class="m-av" style="background:rgba(155,89,182,.18);color:var(--accent);border:0.5px solid var(--accent);">JM</div>
+            <div style="flex:1;min-width:0;"><div class="m-name">Joel Morales</div><div class="m-role">Lead · Guitar</div></div>
+            <div class="m-toggle on"></div>
+          </div>
+          <div class="member-row">
+            <div class="m-av" style="background:rgba(26,188,156,.15);color:var(--aqua);border:0.5px solid rgba(26,188,156,.4);">AS</div>
+            <div style="flex:1;min-width:0;"><div class="m-name">Ana Sánchez</div><div class="m-role">Vocalist</div></div>
+            <div class="m-toggle on"></div>
+          </div>
+          <div class="member-row">
+            <div class="m-av" style="background:rgba(192,192,192,.1);color:var(--silver);border:0.5px solid rgba(192,192,192,.3);">PT</div>
+            <div style="flex:1;min-width:0;"><div class="m-name">Pedro Torres</div><div class="m-role">Keys</div></div>
+            <div class="m-toggle"></div>
+          </div>
+          <div class="member-row">
+            <div class="m-av" style="background:rgba(230,126,34,.15);color:var(--amber);border:0.5px solid rgba(230,126,34,.3);">RM</div>
+            <div style="flex:1;min-width:0;"><div class="m-name">Rosa Medina</div><div class="m-role">Vocalist</div></div>
+            <div class="m-toggle"></div>
+          </div>
+          <div class="member-row">
+            <div class="m-av" style="background:rgba(160,129,94,.15);color:var(--bronze);border:0.5px solid rgba(160,129,94,.3);">DM</div>
+            <div style="flex:1;min-width:0;"><div class="m-name">Diego Morales</div><div class="m-role">Drums</div></div>
+            <div class="m-toggle"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="details-section">
+        <div class="ds-title">Notes</div>
+        <textarea placeholder="Set notes, transitions, reminders for the team…"></textarea>
+      </div>
+
+      <div class="details-section">
+        <div class="ds-title">Status</div>
+        <div class="status-row">
+          <button class="status-chip">Draft</button>
+          <button class="status-chip active">Ready</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+

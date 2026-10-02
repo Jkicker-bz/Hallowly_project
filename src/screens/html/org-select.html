@@ -1,0 +1,128 @@
+
+<div class="layout">
+
+  <!-- ── LEFT ── -->
+  <div class="left-panel">
+    <div class="panel-glow"></div>
+
+    <div class="panel-top">
+      <svg width="28" height="34" viewBox="0 0 32 40" fill="none">
+        <ellipse cx="16" cy="5.5" rx="11" ry="4.2" stroke="#C0C0C0" stroke-width="1.4" fill="none"/>
+        <path d="M6 12 C5.8 14 5.8 28 6 32 C6.1 34 6.5 35.5 5.5 36.5 C5 37 4.2 37.2 4 37" stroke="#C0C0C0" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+        <path d="M22 11 C26 12.5 29 16 28 20 C27.2 23.5 24 25.5 21 25 C19 24.5 18 23.2 18.5 25.5" stroke="#C0C0C0" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+        <path d="M18.5 25.5 C19.5 29 23 30 25.5 29 C28 28 29 25 28 22" stroke="#C0C0C0" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+        <path d="M18.5 25.5 C18 27 17.8 33 18.5 35 C19.2 37 21 38 22.5 37.5" stroke="#C0C0C0" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+        <line x1="6" y1="24" x2="18.5" y2="24" stroke="#C0C0C0" stroke-width="1.5" stroke-linecap="round"/>
+        <circle cx="19" cy="21.5" r="1.6" fill="#C0C0C0"/><circle cx="19" cy="26.5" r="1.6" fill="#C0C0C0"/>
+      </svg>
+      <span class="panel-brand">HALLOWLY</span>
+    </div>
+
+    <div class="panel-center">
+      <div class="panel-logo-wrap">
+        <div class="panel-logo-glow"></div>
+        <svg width="100" height="124" viewBox="0 0 32 40" fill="none" style="position:relative;z-index:1;">
+          <ellipse cx="16" cy="5.5" rx="11" ry="4.2" stroke="#C0C0C0" stroke-width="1.2" fill="none"/>
+          <path d="M6 12 C5.8 14 5.8 28 6 32 C6.1 34 6.5 35.5 5.5 36.5 C5 37 4.2 37.2 4 37" stroke="#C0C0C0" stroke-width="1.2" stroke-linecap="round" fill="none"/>
+          <path d="M22 11 C26 12.5 29 16 28 20 C27.2 23.5 24 25.5 21 25 C19 24.5 18 23.2 18.5 25.5" stroke="#C0C0C0" stroke-width="1.2" stroke-linecap="round" fill="none"/>
+          <path d="M18.5 25.5 C19.5 29 23 30 25.5 29 C28 28 29 25 28 22" stroke="#C0C0C0" stroke-width="1.2" stroke-linecap="round" fill="none"/>
+          <path d="M18.5 25.5 C18 27 17.8 33 18.5 35 C19.2 37 21 38 22.5 37.5" stroke="#C0C0C0" stroke-width="1.2" stroke-linecap="round" fill="none"/>
+          <line x1="6" y1="24" x2="18.5" y2="24" stroke="#C0C0C0" stroke-width="1.2" stroke-linecap="round"/>
+          <circle cx="19" cy="21.5" r="1.6" fill="#C0C0C0"/><circle cx="19" cy="26.5" r="1.6" fill="#C0C0C0"/>
+        </svg>
+      </div>
+      <h2 class="panel-headline">You serve<br/><em>more than one</em><br/>church.</h2>
+      <p class="panel-sub">Select the organization you want to enter. You can switch between them anytime from your profile.</p>
+    </div>
+
+    <div class="panel-bottom">
+      <div class="panel-user">
+        <div class="pu-avatar">AS</div>
+        <div>
+          <div class="pu-name">Ana Sánchez</div>
+          <div class="pu-email">ana.s@gmail.com</div>
+        </div>
+        <span class="pu-action">Sign Out</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── RIGHT ── -->
+  <div class="right-panel">
+    <div class="form-card">
+      <h1 class="form-heading">Select your church.</h1>
+      <p class="form-sub">You're a member of multiple organizations. Choose which one to enter — your library, set lists, and team are scoped to this org.</p>
+
+      <div class="org-search-wrap">
+        <span class="org-search-icon">⌕</span>
+        <input class="org-search-input" type="text" placeholder="Filter organizations…"/>
+      </div>
+
+      <div class="org-list" id="org-list">
+
+        <div class="org-card selected" id="oc-1" style="--card-accent:#9B59B6;">
+          <div class="oc-avatar" style="background:rgba(155,89,182,.18);color:#9B59B6;">IC</div>
+          <div class="oc-body">
+            <div class="oc-name">Iglesia Calvario Succotz</div>
+            <div class="oc-meta">
+              <span>📍 Succotz, Belize</span>
+              <span>👥 12 members</span>
+            </div>
+            <div class="oc-role"><span class="oc-role-badge" style="background:rgba(26,188,156,.1);color:var(--aqua);">Vocalist</span></div>
+          </div>
+          <span class="last-visited">Last visited</span>
+          <div class="oc-check">✓</div>
+        </div>
+
+        <div class="org-card" id="oc-2" style="--card-accent:#1ABC9C;">
+          <div class="oc-avatar" style="background:rgba(26,188,156,.15);color:var(--aqua);">GC</div>
+          <div class="oc-body">
+            <div class="oc-name">Grace Community Church</div>
+            <div class="oc-meta">
+              <span>📍 Belize City, BZ</span>
+              <span>👥 8 members</span>
+            </div>
+            <div class="oc-role"><span class="oc-role-badge" style="background:rgba(26,188,156,.1);color:var(--aqua);">Vocalist</span></div>
+          </div>
+          <div class="oc-check"></div>
+        </div>
+
+        <div class="org-card" id="oc-3" style="--card-accent:#E67E22;">
+          <div class="oc-avatar" style="background:rgba(230,126,34,.15);color:var(--amber);">CB</div>
+          <div class="oc-body">
+            <div class="oc-name">Calvary Chapel Belmopan</div>
+            <div class="oc-meta">
+              <span>📍 Belmopan, BZ</span>
+              <span>👥 6 members</span>
+            </div>
+            <div class="oc-role"><span class="oc-role-badge" style="background:rgba(230,126,34,.1);color:var(--amber);">Guest</span></div>
+          </div>
+          <div class="oc-check"></div>
+        </div>
+
+      </div>
+
+      <button class="btn-enter" id="enter-btn">Enter Organization →</button>
+
+      <div class="form-footer">
+        <button>← Back to Sign In</button>
+        <a href="#">Manage organizations</a>
+      </div>
+
+      <div class="or-divider">
+        <div class="or-line"></div>
+        <span class="or-text">OR</span>
+        <div class="or-line"></div>
+      </div>
+
+      <div class="request-org">
+        <div class="ro-icon">+</div>
+        <div class="ro-text"><strong>Join another church</strong><br/>Enter an invite code from a new Worship Lead</div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+

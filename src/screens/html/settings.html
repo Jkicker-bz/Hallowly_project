@@ -1,0 +1,285 @@
+
+
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <svg width="26" height="32" viewBox="0 0 32 40" fill="none">
+      <ellipse cx="16" cy="5.5" rx="11" ry="4.2" stroke="#C0C0C0" stroke-width="1.4" fill="none"/>
+      <path d="M6 12 C5.8 14 5.8 28 6 32 C6.1 34 6.5 35.5 5.5 36.5 C5 37 4.2 37.2 4 37" stroke="#C0C0C0" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+      <path d="M22 11 C26 12.5 29 16 28 20 C27.2 23.5 24 25.5 21 25 C19 24.5 18 23.2 18.5 25.5" stroke="#C0C0C0" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+      <path d="M18.5 25.5 C19.5 29 23 30 25.5 29 C28 28 29 25 28 22" stroke="#C0C0C0" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+      <path d="M18.5 25.5 C18 27 17.8 33 18.5 35 C19.2 37 21 38 22.5 37.5" stroke="#C0C0C0" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+      <line x1="6" y1="24" x2="18.5" y2="24" stroke="#C0C0C0" stroke-width="1.5" stroke-linecap="round"/>
+      <circle cx="19" cy="21.5" r="1.6" fill="#C0C0C0"/><circle cx="19" cy="26.5" r="1.6" fill="#C0C0C0"/>
+    </svg>
+    <span class="sidebar-logo-text">HALLOWLY</span>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">Overview</div>
+    <a class="nav-item" href="/ui/dashboard"><span class="nav-icon">⬡</span> Dashboard</a>
+    <a class="nav-item" href="/ui/library"><span class="nav-icon">◈</span> Song Library</a>
+    <a class="nav-item" href="/ui/setlists"><span class="nav-icon">≡</span> Set Lists</a>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">Manage</div>
+    <a class="nav-item" href="/ui/chord-editor"><span class="nav-icon">♩</span> Chord Sheets</a>
+    <a class="nav-item" href="/ui/singers"><span class="nav-icon">◎</span> Singer Profiles</a>
+    <a class="nav-item" href="/ui/team"><span class="nav-icon">⊞</span> Team Access</a>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">Tools</div>
+    <a class="nav-item" href="/ui/library"><span class="nav-icon">↓</span> Export / Print</a>
+    <a class="nav-item active" href="/ui/settings"><span class="nav-icon">◇</span> Settings</a>
+  </div>
+  <div class="sidebar-bottom">
+    <div class="user-card">
+      <div class="user-avatar-lg">JM</div>
+      <div><div class="user-name">Joel Morales</div><div class="user-role">Worship Lead · Iglesia Calvario</div></div>
+    </div>
+  </div>
+</aside>
+
+<main class="main">
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">Settings</div>
+      <div class="topbar-sub">Manage your profile, appearance, and organization</div>
+    </div>
+    <button class="btn primary">Save Changes</button>
+  </div>
+
+  <div class="settings-layout">
+
+    <!-- SETTINGS NAV -->
+    <div class="settings-nav">
+      <div class="sn-section">
+        <div class="sn-label">Account</div>
+        <div class="sn-item active"><span class="sn-dot"></span> Profile</div>
+        <div class="sn-item"><span class="sn-dot"></span> Password</div>
+      </div>
+      <div class="sn-section">
+        <div class="sn-label">Appearance</div>
+        <div class="sn-item"><span class="sn-dot"></span> Hallow Accent</div>
+        <div class="sn-item"><span class="sn-dot"></span> Display Mode</div>
+      </div>
+      <div class="sn-section">
+        <div class="sn-label">Organization</div>
+        <div class="sn-item"><span class="sn-dot"></span> My Organization</div>
+        <div class="sn-item"><span class="sn-dot"></span> Notifications</div>
+      </div>
+      <div class="sn-section">
+        <div class="sn-label">Danger</div>
+        <div class="sn-item" style="color:var(--error);opacity:.7;"><span class="sn-dot"></span> Leave / Delete</div>
+      </div>
+    </div>
+
+    <!-- SETTINGS CONTENT -->
+    <div class="settings-content" id="settings-content">
+
+      <!-- PROFILE -->
+      <div class="settings-section" id="profile">
+        <div class="ss-title">Profile</div>
+        <div class="ss-sub">Your name, email, and avatar visible to other team members.</div>
+
+        <div class="avatar-editor">
+          <div class="ae-avatar">AS</div>
+          <div class="ae-actions">
+            <button class="ae-btn outline">Upload Photo</button>
+            <button class="ae-btn outline" style="color:var(--error);border-color:rgba(231,76,60,.2);">Remove</button>
+          </div>
+          <div style="font-size:10px;color:var(--muted);line-height:1.5;">JPG or PNG · Max 2MB<br/>Square recommended</div>
+        </div>
+
+        <div class="field-row-2" style="margin-bottom:14px;">
+          <div class="field-group" style="margin-bottom:0;">
+            <label>First Name</label>
+            <input type="text" value="Joel"/>
+          </div>
+          <div class="field-group" style="margin-bottom:0;">
+            <label>Last Name</label>
+            <input type="text" value="Morales"/>
+          </div>
+        </div>
+        <div class="field-group">
+          <label>Email Address</label>
+          <input type="email" value="joel@calvario.bz"/>
+        </div>
+        <div class="field-group">
+          <label>Display Role</label>
+          <select>
+            <option selected>Worship Lead</option>
+            <option>Vocalist</option>
+            <option>Musician</option>
+            <option>Tech / AV</option>
+            <option>Other</option>
+          </select>
+          <div class="field-hint">Shown on your profile and in team views.</div>
+        </div>
+      </div>
+
+      <div class="settings-section" id="password">
+        <div class="ss-title">Password</div>
+        <div class="ss-sub">Change your Hallowly account password.</div>
+        <div class="field-group">
+          <label>Current Password</label>
+          <input type="password" placeholder="••••••••"/>
+        </div>
+        <div class="field-row-2">
+          <div class="field-group" style="margin-bottom:0;">
+            <label>New Password</label>
+            <input type="password" placeholder="••••••••"/>
+          </div>
+          <div class="field-group" style="margin-bottom:0;">
+            <label>Confirm Password</label>
+            <input type="password" placeholder="••••••••"/>
+          </div>
+        </div>
+      </div>
+
+      <!-- ACCENT MODE PICKER -->
+      <div class="settings-section" id="accent">
+        <div class="ss-title">Personal Hallow Accent</div>
+        <div class="ss-sub">Choose the accent color that fills your Hallowly experience — applied to active elements, logo glow, and interactive states.</div>
+
+        <div class="accent-grid">
+          <!-- Amethyst -->
+          <div class="accent-card selected" id="ac-amethyst" style="--card-color:#9B59B6;">
+            <div class="ac-swatch" style="background:#9B59B6;box-shadow:0 0 12px rgba(155,89,182,0.4);color:#9B59B6;"></div>
+            <div class="ac-name">Amethyst Pneuma</div>
+            <div class="ac-desc">High focus, reverence, spiritual contemplation. Dark mode default.</div>
+            <div class="ac-hex">#9B59B6</div>
+          </div>
+          <!-- Warm Lumen -->
+          <div class="accent-card" id="ac-amber" style="--card-color:#E67E22;">
+            <div class="ac-swatch" style="background:#E67E22;box-shadow:0 0 12px rgba(230,126,34,0.35);color:#E67E22;"></div>
+            <div class="ac-name">Warm Lumen</div>
+            <div class="ac-desc">Welcoming openness, clarity, guiding light. Light mode library.</div>
+            <div class="ac-hex">#E67E22</div>
+          </div>
+          <!-- Bronze -->
+          <div class="accent-card" id="ac-bronze" style="--card-color:#A0815E;">
+            <div class="ac-swatch" style="background:#A0815E;color:#A0815E;"></div>
+            <div class="ac-name">Bronze Consecration</div>
+            <div class="ac-desc">Grounded reliability, humble service, durable authority.</div>
+            <div class="ac-hex">#A0815E</div>
+          </div>
+          <!-- Resonant Flow -->
+          <div class="accent-card" id="ac-aqua" style="--card-color:#1ABC9C;">
+            <div class="ac-swatch" style="background:#1ABC9C;box-shadow:0 0 12px rgba(26,188,156,0.35);color:#1ABC9C;"></div>
+            <div class="ac-name">Resonant Flow</div>
+            <div class="ac-desc">Modern collaboration, vital energy, teamwork and fluidity.</div>
+            <div class="ac-hex">#1ABC9C</div>
+          </div>
+        </div>
+        <div class="field-hint">Your selection is personal — it doesn't affect how other team members see the platform.</div>
+      </div>
+
+      <!-- DISPLAY MODE -->
+      <div class="settings-section" id="display">
+        <div class="ss-title">Display Mode</div>
+        <div class="ss-sub">Switch between dark void and light alabaster surfaces.</div>
+        <div class="mode-row">
+          <div class="mode-card selected" id="mode-dark">
+            <div class="mc-icon">🌑</div>
+            <div class="mc-name">Dark Mode</div>
+            <div class="mc-desc">Void · Amethyst default</div>
+          </div>
+          <div class="mode-card" id="mode-light">
+            <div class="mc-icon">☀️</div>
+            <div class="mc-name">Light Mode</div>
+            <div class="mc-desc">Alabaster · Warm Lumen default</div>
+          </div>
+          <div class="mode-card" id="mode-system">
+            <div class="mc-icon">💻</div>
+            <div class="mc-name">System</div>
+            <div class="mc-desc">Follows OS preference</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ORGANIZATION -->
+      <div class="settings-section" id="org">
+        <div class="ss-title">My Organization</div>
+        <div class="ss-sub">You are a member of the following organization. Only one org per account.</div>
+
+        <div class="org-card">
+          <div class="oc-avatar">IC</div>
+          <div>
+            <div class="oc-name">Iglesia Calvario Succotz</div>
+            <div class="oc-meta">Succotz, Belize · 12 members · Since January 2024</div>
+            <span class="oc-badge">Worship Lead</span>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label>Organization Display Name</label>
+          <input type="text" value="Iglesia Calvario Succotz"/>
+          <div class="field-hint">Only visible to Worship Leads. Members see this in their dashboard.</div>
+        </div>
+        <div class="field-group">
+          <label>Location</label>
+          <input type="text" value="Succotz, Belize"/>
+        </div>
+      </div>
+
+      <!-- NOTIFICATIONS -->
+      <div class="settings-section" id="notifications">
+        <div class="ss-title">Notifications</div>
+        <div class="ss-sub">Choose what activity updates you receive.</div>
+
+        <div class="toggle-row">
+          <div class="toggle-info"><div class="toggle-label">New set list published</div><div class="toggle-desc">When your lead finalizes a set list</div></div>
+          <div class="toggle-switch on"></div>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-info"><div class="toggle-label">Song assigned to me</div><div class="toggle-desc">When you're added or removed from a song</div></div>
+          <div class="toggle-switch on"></div>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-info"><div class="toggle-label">Key transposed</div><div class="toggle-desc">When a song in your set changes key</div></div>
+          <div class="toggle-switch on"></div>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-info"><div class="toggle-label">New team member joined</div><div class="toggle-desc">When someone joins your organization</div></div>
+          <div class="toggle-switch"></div>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-info"><div class="toggle-label">Song library updated</div><div class="toggle-desc">When a new song is added to the library</div></div>
+          <div class="toggle-switch"></div>
+        </div>
+      </div>
+
+      <!-- DANGER ZONE -->
+      <div class="settings-section" id="danger">
+        <div class="ss-title" style="color:var(--error);">Danger Zone</div>
+        <div class="ss-sub">These actions are irreversible. Proceed with care.</div>
+        <div class="danger-zone">
+          <div style="margin-bottom:20px;padding-bottom:20px;border-bottom:0.5px solid rgba(231,76,60,.15);">
+            <div class="dz-title">Leave Organization</div>
+            <div class="dz-text">You'll lose access to Iglesia Calvario's library, set lists, and team features. Your account remains active.</div>
+            <button class="btn danger">Leave Organization</button>
+          </div>
+          <div>
+            <div class="dz-title">Delete Account</div>
+            <div class="dz-text">Permanently deletes your Hallowly account and all associated data. This cannot be undone.</div>
+            <button class="btn danger">Delete My Account</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Save bar spacer -->
+      <div style="height:60px;"></div>
+    </div>
+  </div>
+
+  <!-- SAVE BAR -->
+  <div class="save-bar">
+    <span class="sb-note">Unsaved changes will be lost if you navigate away.</span>
+    <div style="display:flex;gap:8px;">
+      <button class="btn ghost">Discard</button>
+      <button class="btn primary">Save Changes</button>
+    </div>
+  </div>
+
+</main>
+
+

@@ -1,0 +1,438 @@
+
+
+<!-- ═══ SIDEBAR ═══ -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <!-- DEFINITIVE C-CLEF LOGO — corrected form matching reference -->
+    <svg width="32" height="40" viewBox="0 0 32 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <!-- Halo: tilted ellipse floating above -->
+      <ellipse cx="16" cy="5.5" rx="11" ry="4.2" stroke="#C0C0C0" stroke-width="1.4" fill="none"/>
+
+      <!-- Left vertical: simple descender with small bottom curl (cursive h left leg) -->
+      <path d="M6 12
+               C5.8 14 5.8 28 6 32
+               C6.1 34 6.5 35.5 5.5 36.5
+               C5 37 4.2 37.2 4 37"
+            stroke="#C0C0C0" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+
+      <!-- Right C-clef column: large top loop, crosses crossbar, curl bottom -->
+      <!-- Top sweeping loop (characteristic C-clef upper arch) -->
+      <path d="M22 11
+               C26 12.5 29 16 28 20
+               C27.2 23.5 24 25.5 21 25
+               C19 24.5 18 23.2 18.5 25.5"
+            stroke="#C0C0C0" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+      <!-- Through the crossbar and lower arch -->
+      <path d="M18.5 25.5
+               C19.5 29 23 30 25.5 29
+               C28 28 29 25 28 22"
+            stroke="#C0C0C0" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+      <!-- Bottom tail curl -->
+      <path d="M18.5 25.5
+               C18 27 17.8 33 18.5 35
+               C19.2 37 21 38 22.5 37.5"
+            stroke="#C0C0C0" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+
+      <!-- Crossbar connecting left to right stave -->
+      <line x1="6" y1="24" x2="18.5" y2="24" stroke="#C0C0C0" stroke-width="1.5" stroke-linecap="round"/>
+
+      <!-- Two C-clef pin dots on the right side of crossbar -->
+      <circle cx="19" cy="21.5" r="1.6" fill="#C0C0C0"/>
+      <circle cx="19" cy="26.5" r="1.6" fill="#C0C0C0"/>
+    </svg>
+    <span class="sidebar-logo-text">HALLOWLY</span>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-label">Overview</div>
+    <a class="nav-item active" href="#">
+      <span class="nav-icon">⬡</span> Dashboard
+    </a>
+    <a class="nav-item" href="/ui/library">
+      <span class="nav-icon">◈</span> Song Library
+      <span class="nav-badge">124</span>
+    </a>
+    <a class="nav-item" href="/ui/setlists">
+      <span class="nav-icon">≡</span> Set Lists
+      <span class="nav-badge">38</span>
+    </a>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-label">Manage</div>
+    <a class="nav-item" href="/ui/chord-editor">
+      <span class="nav-icon">♩</span> Chord Sheets
+    </a>
+    <a class="nav-item" href="/ui/singers">
+      <span class="nav-icon">◎</span> Singer Profiles
+    </a>
+    <a class="nav-item" href="/ui/team">
+      <span class="nav-icon">⊞</span> Team Access
+    </a>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-label">Tools</div>
+    <a class="nav-item" href="#">
+      <span class="nav-icon">↓</span> Export / Print
+    </a>
+    <a class="nav-item" href="/ui/settings">
+      <span class="nav-icon">◇</span> Settings
+    </a>
+  </div>
+
+  <div class="sidebar-bottom">
+    <div class="user-card">
+      <div class="user-avatar">JM</div>
+      <div>
+        <div class="user-name">Joel Morales</div>
+        <div class="user-role">Worship Lead</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- ═══ MAIN ═══ -->
+<main class="main">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">
+        <span class="status-dot"></span>
+        Team Lead Dashboard
+      </div>
+      <div class="topbar-sub">Sunday April 27, 2026 · Next service in 4 days</div>
+    </div>
+    <div class="topbar-right">
+      <div class="search-wrap">
+        <span class="search-icon">⌕</span>
+        <input class="search-input" placeholder="Search songs, sets..." type="text"/>
+      </div>
+      <a href="/ui/library" class="btn-sm ghost">Export PDF</a>
+      <a href="/ui/create-setlist" class="btn-sm primary">+ New Set List</a>
+    </div>
+  </div>
+
+  <!-- SCROLL AREA -->
+  <div class="scroll-area">
+
+    <!-- STAT CARDS -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-label">Songs in Library</div>
+        <div class="stat-value">124</div>
+        <div class="stat-delta">↑ 3 added this week</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Set Lists</div>
+        <div class="stat-value">38</div>
+        <div class="stat-delta">↑ 2 this month</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Team Members</div>
+        <div class="stat-value">12</div>
+        <div class="stat-delta down">— no change</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Next Service</div>
+        <div class="stat-value" style="font-size:20px; color: var(--accent);">APR 27</div>
+        <div class="stat-delta">Sunday AM · 8 songs</div>
+      </div>
+    </div>
+
+    <!-- QUICK ACTIONS -->
+    <div class="quick-actions">
+      <button class="qa-btn"><span class="qa-icon">+</span> Add Song</button>
+      <button class="qa-btn"><span class="qa-icon">≡</span> New Set List</button>
+      <button class="qa-btn"><span class="qa-icon">♩</span> Edit Chords</button>
+      <button class="qa-btn"><span class="qa-icon">↕</span> Transpose Key</button>
+      <button class="qa-btn"><span class="qa-icon">↓</span> Print Set</button>
+    </div>
+
+    <!-- TWO COLUMN -->
+    <div class="two-col">
+
+      <!-- LEFT: Upcoming + Songs table -->
+      <div style="display:flex; flex-direction:column; gap:20px;">
+
+        <!-- Upcoming Set Lists -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Upcoming Set Lists</span>
+            <span class="card-action">View all →</span>
+          </div>
+          <div class="setlist-item">
+            <div class="setlist-date-block">
+              <div class="setlist-date-day">27</div>
+              <div class="setlist-date-mon">APR</div>
+            </div>
+            <div class="setlist-info">
+              <div class="setlist-name">Sunday Morning Service</div>
+              <div class="setlist-meta">
+                <span>8 songs</span>
+                <span>Key of G / D</span>
+                <span>Joel M. · Ana S.</span>
+              </div>
+            </div>
+            <span class="setlist-tag tag-contemporary">Contemporary</span>
+          </div>
+          <div class="setlist-item">
+            <div class="setlist-date-block">
+              <div class="setlist-date-day">01</div>
+              <div class="setlist-date-mon">MAY</div>
+            </div>
+            <div class="setlist-info">
+              <div class="setlist-name">Youth Night — "Encounter"</div>
+              <div class="setlist-meta">
+                <span>6 songs</span>
+                <span>Key of A / E</span>
+                <span>Marcos V.</span>
+              </div>
+            </div>
+            <span class="setlist-tag tag-youth">Youth</span>
+          </div>
+          <div class="setlist-item">
+            <div class="setlist-date-block">
+              <div class="setlist-date-day">04</div>
+              <div class="setlist-date-mon">MAY</div>
+            </div>
+            <div class="setlist-info">
+              <div class="setlist-name">Sunday Service — Bilingual</div>
+              <div class="setlist-meta">
+                <span>7 songs</span>
+                <span>Mixed keys</span>
+                <span>Full team</span>
+              </div>
+            </div>
+            <span class="setlist-tag tag-bilingual">Bilingual</span>
+          </div>
+          <div class="setlist-item">
+            <div class="setlist-date-block">
+              <div class="setlist-date-day">10</div>
+              <div class="setlist-date-mon">MAY</div>
+            </div>
+            <div class="setlist-info">
+              <div class="setlist-name">Mothers' Day Celebration</div>
+              <div class="setlist-meta">
+                <span>9 songs</span>
+                <span>Key of C / F</span>
+                <span>Ana S. · Rosa M.</span>
+              </div>
+            </div>
+            <span class="setlist-tag tag-gospel">Gospel</span>
+          </div>
+        </div>
+
+        <!-- Recently Added Songs -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Recently Added Songs</span>
+            <span class="card-action">Open Library →</span>
+          </div>
+          <table class="song-table">
+            <thead>
+              <tr>
+                <th>Song</th>
+                <th>Artist</th>
+                <th>Key</th>
+                <th>Style</th>
+                <th>Sets</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="song-title-cell">Goodness of God</td>
+                <td class="song-artist-cell">Bethel Music</td>
+                <td class="song-key-cell">G</td>
+                <td class="song-style-cell">Contemporary</td>
+                <td class="song-artist-cell">7</td>
+              </tr>
+              <tr>
+                <td class="song-title-cell">Quiero Conocerte</td>
+                <td class="song-artist-cell">Marco Barrientos</td>
+                <td class="song-key-cell">A</td>
+                <td class="song-style-cell">Cumbia</td>
+                <td class="song-artist-cell">3</td>
+              </tr>
+              <tr>
+                <td class="song-title-cell">Way Maker</td>
+                <td class="song-artist-cell">Sinach</td>
+                <td class="song-key-cell">D</td>
+                <td class="song-style-cell">Gospel</td>
+                <td class="song-artist-cell">5</td>
+              </tr>
+              <tr>
+                <td class="song-title-cell">Great Are You Lord</td>
+                <td class="song-artist-cell">All Sons & Daughters</td>
+                <td class="song-key-cell">E</td>
+                <td class="song-style-cell">Contemporary</td>
+                <td class="song-artist-cell">4</td>
+              </tr>
+              <tr>
+                <td class="song-title-cell">Holy Spirit</td>
+                <td class="song-artist-cell">Bryan &amp; Katie Torwalt</td>
+                <td class="song-key-cell">C</td>
+                <td class="song-style-cell">Praise</td>
+                <td class="song-artist-cell">6</td>
+              </tr>
+              <tr>
+                <td class="song-title-cell">Oceans</td>
+                <td class="song-artist-cell">Hillsong United</td>
+                <td class="song-key-cell">D</td>
+                <td class="song-style-cell">Contemporary</td>
+                <td class="song-artist-cell">9</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+
+      <!-- RIGHT COLUMN -->
+      <div class="right-col">
+
+        <!-- Sunday APR 27 Builder -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">APR 27 · Set Order</span>
+            <span class="card-action">Edit →</span>
+          </div>
+          <!-- Preparation progress -->
+          <div class="prep-bar-wrap">
+            <div class="prep-label">
+              <span>Set preparation</span>
+              <span>75%</span>
+            </div>
+            <div class="prep-bar">
+              <div class="prep-fill" style="width:75%;"></div>
+            </div>
+            <div class="prep-label" style="margin-bottom:0;">
+              <span>Chords reviewed</span>
+              <span>6 / 8</span>
+            </div>
+            <div class="prep-bar" style="margin-bottom:0;">
+              <div class="prep-fill" style="width:75%; background: var(--aqua);"></div>
+            </div>
+          </div>
+          <div class="setlist-builder-list">
+            <div class="builder-song">
+              <span class="builder-num">01</span>
+              <span class="builder-song-name">Goodness of God</span>
+              <span class="builder-key">G</span>
+              <span class="builder-drag">⠿</span>
+            </div>
+            <div class="builder-song">
+              <span class="builder-num">02</span>
+              <span class="builder-song-name">Holy Spirit</span>
+              <span class="builder-key">C</span>
+              <span class="builder-drag">⠿</span>
+            </div>
+            <div class="builder-song">
+              <span class="builder-num">03</span>
+              <span class="builder-song-name">Way Maker</span>
+              <span class="builder-key">D</span>
+              <span class="builder-drag">⠿</span>
+            </div>
+            <div class="builder-song">
+              <span class="builder-num">04</span>
+              <span class="builder-song-name">Oceans</span>
+              <span class="builder-key">D</span>
+              <span class="builder-drag">⠿</span>
+            </div>
+            <div class="builder-song">
+              <span class="builder-num">05</span>
+              <span class="builder-song-name">Great Are You Lord</span>
+              <span class="builder-key">E</span>
+              <span class="builder-drag">⠿</span>
+            </div>
+            <div class="builder-song" style="opacity:0.45;">
+              <span class="builder-num">+3</span>
+              <span class="builder-song-name" style="color:var(--muted2);">more songs…</span>
+              <span class="builder-key" style="color:var(--muted);">—</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Team Presence -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Team · This Sunday</span>
+            <span class="card-action">Manage →</span>
+          </div>
+          <div class="team-grid">
+            <div class="member-bubble">
+              <div class="member-avatar online av-a">JM</div>
+              <span class="member-name">Joel M.</span>
+            </div>
+            <div class="member-bubble">
+              <div class="member-avatar online av-b">AS</div>
+              <span class="member-name">Ana S.</span>
+            </div>
+            <div class="member-bubble">
+              <div class="member-avatar accent av-c">MV</div>
+              <span class="member-name">Marcos V.</span>
+            </div>
+            <div class="member-bubble">
+              <div class="member-avatar online av-d">RM</div>
+              <span class="member-name">Rosa M.</span>
+            </div>
+            <div class="member-bubble">
+              <div class="member-avatar away av-e">CL</div>
+              <span class="member-name">Carlos L.</span>
+            </div>
+            <div class="member-bubble">
+              <div class="member-avatar online av-b">PT</div>
+              <span class="member-name">Pedro T.</span>
+            </div>
+            <div class="member-bubble">
+              <div class="member-avatar away av-c">LG</div>
+              <span class="member-name">Lucia G.</span>
+            </div>
+            <div class="member-bubble">
+              <div class="member-avatar online av-a">DM</div>
+              <span class="member-name">Diego M.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Activity Feed -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Recent Activity</span>
+          </div>
+          <div class="activity-list">
+            <div class="activity-item">
+              <div class="activity-dot accent"></div>
+              <div class="activity-text"><strong>Ana S.</strong> reviewed chord sheet for "Goodness of God"</div>
+              <span class="activity-time">2m</span>
+            </div>
+            <div class="activity-item">
+              <div class="activity-dot aqua"></div>
+              <div class="activity-text"><strong>Joel M.</strong> added "Holy Spirit" to APR 27 set</div>
+              <span class="activity-time">18m</span>
+            </div>
+            <div class="activity-item">
+              <div class="activity-dot silver"></div>
+              <div class="activity-text"><strong>Marcos V.</strong> transposed "Way Maker" from E → D</div>
+              <span class="activity-time">1h</span>
+            </div>
+            <div class="activity-item">
+              <div class="activity-dot amber"></div>
+              <div class="activity-text"><strong>Rosa M.</strong> joined the team as vocalist</div>
+              <span class="activity-time">3h</span>
+            </div>
+            <div class="activity-item">
+              <div class="activity-dot accent"></div>
+              <div class="activity-text"><strong>Joel M.</strong> created set list "Mothers' Day 2026"</div>
+              <span class="activity-time">5h</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div><!-- end scroll-area -->
+</main>
+
