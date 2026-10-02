@@ -73,8 +73,10 @@ export function SetlistsPage() {
               return (
                 <div key={en.songId}>
                   {en.section && <div className="hw-card-meta" style={{ marginBottom: 2 }}>{en.section.toUpperCase()}</div>}
-                  <Link className="hw-card-link" style={{ margin: 0 }} to={`/setlists/${sl.id}/perform/${s.id}`}>
-                    {i + 1}. {s.title} · {en.keyOverride ?? sl.listKey ?? s.originalKey}
+                  <Link className="hw-songrow" to={`/setlists/${sl.id}/perform/${s.id}`}>
+                    <span className="hw-num">{String(i + 1).padStart(2, "0")}</span>
+                    <span><b>{s.title}</b><small>{s.artist}</small></span>
+                    <span className="hw-key">{en.keyOverride ?? sl.listKey ?? s.originalKey}</span>
                   </Link>
                   {isLead && (
                     <div className="hw-row" style={{ marginTop: 6 }}>

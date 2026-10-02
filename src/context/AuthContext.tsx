@@ -19,7 +19,7 @@ interface AuthContextValue {
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
-const TEAM: Team = { id: "team-1", name: "Worship Team", defaultAccent: "amethyst" };
+const TEAM: Team = { id: "team-1", name: "Iglesia Calvario Succotz", defaultAccent: "amethyst" };
 const demo = (role: Role): User => ({ id: "demo", name: role === "lead" ? "Jordan" : "Sam", role, teamId: TEAM.id });
 
 export function AuthProvider({ children }: { children: ReactNode }) {

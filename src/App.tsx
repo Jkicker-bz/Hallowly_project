@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import "./theme/tokens.css";
 import "./theme/app-shell.css";
 import "./theme/onstage.css";
+import "./theme/design.css";
 
 import { AuthProvider } from "./context/AuthContext";
 import { ThemeProvider } from "./context/ThemeContext";

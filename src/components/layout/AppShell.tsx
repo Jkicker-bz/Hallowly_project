@@ -8,15 +8,16 @@ interface TabDef {
   to: string;
   label: string;
   /** Omit to show for every role. */
+  icon: string;
   leadOnly?: boolean;
 }
 
 const TABS: TabDef[] = [
-  { to: "/", label: "Home" },
-  { to: "/setlists", label: "Setlists" },
-  { to: "/library", label: "Library" },
-  { to: "/team", label: "Team", leadOnly: true },
-  { to: "/settings", label: "Settings" },
+  { to: "/", label: "Home", icon: "⬡" },
+  { to: "/setlists", label: "Setlists", icon: "≡" },
+  { to: "/library", label: "Library", icon: "◈" },
+  { to: "/team", label: "Team", icon: "⊞", leadOnly: true },
+  { to: "/settings", label: "Settings", icon: "◇" },
 ];
 
 /**
@@ -59,7 +60,7 @@ export function AppShell() {
             end={tab.to === "/"}
             className={({ isActive }) => "hw-tab" + (isActive ? " active" : "")}
           >
-            <span className="hw-tab-dot" />
+            <span className="hw-tab-icon" aria-hidden="true">{tab.icon}</span>
             {tab.label.toUpperCase()}
           </NavLink>
         ))}
