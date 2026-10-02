@@ -3,7 +3,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { supabase } from "./supabase";
 import { parseSongBody } from "./chordpro";
-import type { Setlist, Song, SongSection } from "../types/song";
+import type { Setlist, Song, SongLine, SongSection } from "../types/song";
 import type { TeamMember } from "../types/user";
 
 type Row = Record<string, any>;
@@ -34,7 +34,7 @@ export async function fetchAll(): Promise<{ songs: Song[]; setlists: Setlist[]; 
   const [songRows, leads, lists, listSongs, listLeads] = await Promise.all([
     table("songs", "id,title,artist,style,key,bpm,active"),
     table("leads", "id,initials,full_name,role,avatar_color,active"), // never request email
-    table("lists", "id,name,date,list_key,note,active"),
+    table("lists", "id,name,date,event_type,list_key,note,active"),
     table("list_songs"),
     table("list_leads", "list_id,lead_id"),
   ]);
@@ -51,7 +51,7 @@ export async function fetchAll(): Promise<{ songs: Song[]; setlists: Setlist[]; 
   const setlists: Setlist[] = lists
     .filter((l) => l.active !== false)
     .map((l) => ({
-      id: l.id, serviceTitle: l.name, serviceDate: l.date, note: l.note ?? undefined, listKey: l.list_key ?? undefined,
+      id: l.id, serviceTitle: l.name, serviceDate: l.date, note: l.note ?? undefined, eventType: l.event_type ?? undefined, listKey: l.list_key ?? undefined,
       entries: listSongs
         .filter((x) => x.list_id === l.id && known.has(x.song_id))
         .sort((a, b) => (a.position ?? 0) - (b.position ?? 0))
@@ -66,7 +66,7 @@ export async function fetchAll(): Promise<{ songs: Song[]; setlists: Setlist[]; 
 /** Saves one setlist: upserts the list row, then rewrites its songs in order. */
 export async function pushList(s: Setlist): Promise<void> {
   const sb = supabase!;
-  const a = await sb.from("lists").upsert({ id: s.id, name: s.serviceTitle, date: s.serviceDate, list_key: s.listKey ?? null, note: s.note ?? null, active: true });
+  const a = await sb.from("lists").upsert({ id: s.id, name: s.serviceTitle, date: s.serviceDate, event_type: s.eventType ?? "Sunday AM", list_key: s.listKey ?? null, note: s.note ?? null, active: true });
   if (a.error) throw a.error;
   const d = await sb.from("list_songs").delete().eq("list_id", s.id);
   if (d.error) throw d.error;
@@ -108,4 +108,32 @@ export async function fetchChart(songId: string) {
   const { data, error } = await supabase!.from("chords").select("*").eq("song_id", songId);
   if (error) throw error;
   return chart((data ?? []) as Row[]);
+}
+
+const toTokens = (l: SongLine) => {
+  if (l.isInstrumental) return { tokens: l.chords.map((c) => ({ chord: c.symbol, lyric: "" })) };
+  const t: { chord: string; lyric: string }[] = [];
+  if (!l.chords.length || l.chords[0].charIndex > 0) t.push({ chord: "", lyric: l.lyric.slice(0, l.chords[0]?.charIndex ?? l.lyric.length) });
+  l.chords.forEach((c, i) => t.push({ chord: c.symbol, lyric: l.lyric.slice(c.charIndex, l.chords[i + 1]?.charIndex ?? l.lyric.length) }));
+  return { tokens: t };
+};
+
+/** Saves a song and its chart. New chart rows are written before the old ones are removed, so a failure never loses a chart. */
+export async function pushSong(s: Song): Promise<void> {
+  const sb = supabase!;
+  const a = await sb.from("songs").upsert({ id: s.id, title: s.title, artist: s.artist || "Unknown", style: s.style ?? null, key: s.originalKey, bpm: s.bpm ?? null, active: true });
+  if (a.error) throw a.error;
+  const old = await sb.from("chords").select("id").eq("song_id", s.id);
+  if (old.error) throw old.error;
+  if (s.sections.length) {
+    const ins = await sb.from("chords").insert(s.sections.map((sec, i) => ({ song_id: s.id, section_name: sec.label ?? sec.kind, position: i, tokens: sec.lines.map(toTokens) })));
+    if (ins.error) throw ins.error;
+  }
+  const ids = (old.data ?? []).map((x) => x.id);
+  if (ids.length) { const d = await sb.from("chords").delete().in("id", ids); if (d.error) throw d.error; }
+}
+
+export async function archiveSong(id: string): Promise<void> {
+  const { error } = await supabase!.from("songs").update({ active: false }).eq("id", id);
+  if (error) throw error;
 }

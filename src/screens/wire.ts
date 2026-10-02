@@ -3,8 +3,9 @@
 import type { NavigateFunction } from "react-router-dom";
 import type { useAuth } from "../context/AuthContext";
 import type { useLibrary } from "../context/LibraryContext";
-import type { Song, SongLine } from "../types/song";
+import type { Song } from "../types/song";
 import { semitoneDiff, spell, transposeChord } from "../lib/transpose";
+import { chordRow, parseChordSheet, toChordSheet } from "../lib/chordsheet";
 
 export interface Deps {
   auth: ReturnType<typeof useAuth>;
@@ -128,7 +129,7 @@ const dashboard: Wire = (root, { auth, lib, nav }, signal) => {
   on(actions[0], "click", () => nav("/setlists"), signal);
   on(actions[1], "click", () => nav("/library"), signal);
   const qa = root.querySelectorAll(".qa-btn");
-  on(qa[0], "click", () => nav("/manage/library"), signal);
+  on(qa[0], "click", () => nav("/add-song"), signal);
   on(qa[1], "click", () => nav("/create-setlist"), signal);
 };
 
@@ -136,9 +137,6 @@ const dashboard: Wire = (root, { auth, lib, nav }, signal) => {
 
 // ---------- shared chart helpers ----------
 const esc = (t: string) => t.replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[c]!);
-/** Chord symbols placed at their character offsets (monospace), e.g. "G     D". */
-const chordRow = (l: SongLine, f: (c: string) => string) =>
-  l.chords.reduce((r, c) => r.padEnd(Math.max(c.charIndex, r ? r.length + 1 : 0)) + f(c.symbol), "");
 const styleKey = (s?: string) => { const k = (s ?? "").toLowerCase(); return ["gospel", "praise", "hymn"].find((x) => k.includes(x)) ?? (/latin|cumbia/.test(k) ? "latin" : "contemporary"); };
 const STYLE: Record<string, { label: string; cls: string; stripe: string; chip: string; text: string; bar: string }> = {
   contemporary: { label: "Contemporary", cls: "ctag-c", stripe: "stripe-contemporary", chip: "rgba(155,89,182,.12)", text: "#C084E0", bar: "var(--accent)" },
@@ -159,7 +157,7 @@ const library: Wire = (root, { auth, lib, nav }, signal) => {
   text(root, ".hero-eyebrow", `${auth.team?.name ?? "Hallowly"} · ${lib.songs.length} Songs`);
   if (auth.user) { const b = q(root, ".nav-actions .btn-ghost"); if (b) { b.textContent = "Dashboard"; b.setAttribute("href", "/dashboard"); } }
   const team = q(root, ".team-cta"); if (team) team.style.display = auth.signedIn ? "none" : "";
-  root.querySelectorAll<HTMLElement>(".nav-actions .btn-primary, .add-song-btn, #song-modal .mf-btn.primary").forEach((b) => { b.style.display = auth.isLead ? "" : "none"; if (!b.classList.contains("mf-btn")) b.setAttribute("href", "/manage/library"); });
+  root.querySelectorAll<HTMLElement>(".nav-actions .btn-primary, .add-song-btn, #song-modal .mf-btn.primary").forEach((b) => { b.style.display = auth.isLead ? "" : "none"; if (!b.classList.contains("mf-btn")) b.setAttribute("href", "/add-song"); });
 
   // side panels
   const byStyle: Record<string, number> = {}, keys: Record<string, number> = {};
@@ -265,7 +263,7 @@ const songDetail: Wire = (root, { auth, lib, nav }, signal) => {
   const hs = root.querySelectorAll<HTMLElement>(".hs-item");
   text(hs[0], ".hs-val", String(usedIn(lib, song.id))); text(hs[1], ".hs-val", song.originalKey); if (hs[2]) hs[2].style.display = "none";
   text(root, "#ct-key", key.name); text(root, "#ct-fs", String(D.size));
-  const edit = q(root, "#btn-hero-edit"); if (edit) edit.style.display = auth.isLead ? "" : "none";
+  const edit = q(root, "#btn-hero-edit"); if (edit) { edit.style.display = auth.isLead ? "" : "none"; on(edit, "click", () => nav(`/chord-editor/${song.id}`), signal); }
 
   const disp = q(root, "#chord-display")!;
   disp.style.fontSize = D.size + "px";
@@ -316,7 +314,7 @@ const setlists: Wire = (root, { auth, lib, nav }, signal) => {
     const top = Object.entries(styles.reduce<Record<string, number>>((a, k) => ((a[k] = (a[k] ?? 0) + 1), a), {})).sort((a, b) => b[1] - a[1])[0]?.[0];
     if (sl) {
       if (v[0]) v[0].textContent = date(sl.serviceDate).toLocaleDateString("en", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
-      if (v[1]) v[1].textContent = sl.note ?? "Worship service";
+      if (v[1]) v[1].textContent = sl.eventType ?? sl.note ?? "Worship service";
       if (v[2]) v[2].textContent = String(sl.entries.length).padStart(2, "0");
       if (v[3]) v[3].textContent = top ?? "—";
     }
@@ -404,7 +402,7 @@ const createSetlist: Wire = (root, { auth, lib, nav, backend }, signal) => {
     if (backend && !auth.isLead) return alert("Only worship leads can create set lists.");
     if (!title || !day) return alert("Add a title and a date first.");
     lib.addSetlist({
-      serviceTitle: title, serviceDate: day, note: q(root, ".echip.active")?.textContent ?? undefined,
+      serviceTitle: title, serviceDate: day, eventType: q(root, ".echip.active")?.textContent ?? "Other",
       entries: CS.picked.map((p) => ({ songId: p.id, keyOverride: p.key !== lib.getSongById(p.id)?.originalKey ? p.key : undefined })),
       crew: [...CS.crew].map((id) => ({ memberId: id, role: lib.members.find((m) => m.id === id)?.instrument ?? "" })),
     });
@@ -431,4 +429,74 @@ const team: Wire = (root, { auth, lib, nav }, signal) => {
   });
 };
 
-export const wire: Record<string, Wire> = { "create-setlist": createSetlist, team, login, dashboard, library, "song-detail": songDetail, setlists };
+// ---------- add song ----------
+const KEYMAP: Record<string, string> = { "C♯": "C#", "E♭": "Eb", "F♯": "F#", "A♭": "Ab", "B♭": "Bb" };
+
+const addSong: Wire = (root, { auth, lib, nav, backend }, signal) => {
+  const keys = root.querySelectorAll<HTMLElement>(".key-btn"), chips = root.querySelectorAll<HTMLElement>(".style-chip");
+  keys.forEach((k) => on(k, "click", () => keys.forEach((x) => x.classList.toggle("active", x === k)), signal));
+  chips.forEach((c) => on(c, "click", () => chips.forEach((x) => x.classList.toggle("active", x === c)), signal));
+  const val = (id: string) => q<HTMLInputElement>(root, "#" + id)?.value.trim() ?? "";
+  const save = () => {
+    if (backend && !auth.signedIn) return nav("/login");
+    if (backend && !auth.isLead) return alert("Only worship leads can add songs.");
+    const key = q(root, ".key-btn.active")?.textContent ?? "", style = q(root, ".style-chip.active")?.textContent ?? "";
+    if (!val("song-title") || !val("song-artist") || !key) return alert("Add a title, an artist and the original key.");
+    const id = lib.addSong({
+      title: val("song-title"), artist: val("song-artist"), originalKey: KEYMAP[key] ?? key, bpm: val("song-bpm") ? Number(val("song-bpm")) : undefined,
+      style: style.startsWith("Latin") ? "Latin" : style || undefined, body: "", sheet: q<HTMLTextAreaElement>(root, "#chord-sheet")?.value ?? "",
+    });
+    nav(`/song/${id}`);
+  };
+  root.querySelectorAll(".topbar-right .btn").forEach((b) => on(b, "click", save, signal));
+};
+
+// ---------- chord editor (/chord-editor/:songId) ----------
+const CE = { id: "", size: 13 };
+
+const chordEditor: Wire = (root, { auth, lib, nav, backend }, signal) => {
+  const id = window.location.pathname.split("/")[2];
+  const song = id ? lib.getSongById(id) : undefined;
+  const ta = q<HTMLTextAreaElement>(root, "#chord-editor")!, title = q<HTMLInputElement>(root, "#song-title-input")!;
+  if (!song) { title.value = lib.songs.length ? "Song not found" : "Loading…"; ta.disabled = true; return; }
+  lib.ensureChart(song.id);
+  if (song.loaded === false) { ta.value = "Loading chart…"; ta.disabled = true; return; }
+  ta.disabled = false;
+  if (CE.id !== song.id) { CE.id = song.id; title.value = song.title; ta.value = toChordSheet(song.sections); }
+  text(root, "#top-key-badge", `Key of ${song.originalKey}`); text(root, "#current-key", song.originalKey);
+
+  const preview = () => {
+    const secs = parseChordSheet(ta.value);
+    text(root, "#stat-lines", `${secs.reduce((n, s) => n + s.lines.length, 0)} lines`); text(root, "#stat-sections", `${secs.length} sections`); text(root, "#stat-words", `${ta.value.split(/\s+/).filter(Boolean).length} words`);
+    text(root, "#preview-title", title.value); text(root, "#preview-key-chip", `Key of ${song.originalKey}`);
+    const body = q(root, "#preview-body"); if (!body) return;
+    body.style.fontSize = CE.size + "px"; body.style.whiteSpace = "pre";
+    body.innerHTML = secs.map((s) => `<div style="color:var(--muted2);margin-top:14px">[${esc(s.label ?? s.kind)}]</div>` + s.lines.map((l) =>
+      l.isInstrumental ? `<div style="color:var(--accent)">${esc(chordRow(l))}</div>` : (l.chords.length ? `<div style="color:var(--accent)">${esc(chordRow(l))}</div>` : "") + `<div>${esc(l.lyric)}</div>`).join("")).join("");
+  };
+  preview();
+  on(ta, "input", preview, signal); on(title, "input", preview, signal);
+  const view = (m: "split" | "editor" | "preview") => {
+    const w = q(root, "#write-panel"), p = q(root, "#preview-panel");
+    if (w) w.style.display = m === "preview" ? "none" : ""; if (p) p.style.display = m === "editor" ? "none" : "";
+    (["split", "editor", "preview"] as const).forEach((x) => q(root, "#view-" + x)?.classList.toggle("active", x === m));
+  };
+  (["split", "editor", "preview"] as const).forEach((m) => on(q(root, "#view-" + m), "click", () => view(m), signal));
+  const fs = root.querySelectorAll<HTMLElement>(".fs-btn");
+  const size = (d: number) => () => { CE.size = Math.min(24, Math.max(10, CE.size + d)); ta.style.fontSize = CE.size + "px"; text(root, "#fs-val", String(CE.size)); preview(); };
+  on(fs[0], "click", size(-1), signal); on(fs[1], "click", size(1), signal);
+  const act = root.querySelectorAll<HTMLElement>(".topbar-actions .btn");
+  on(act[0], "click", () => window.print(), signal);
+  const save = () => {
+    if (backend && !auth.isLead) return alert("Only worship leads can edit charts.");
+    lib.updateSong(song.id, { title: title.value.trim() || song.title, originalKey: song.originalKey, bpm: song.bpm, body: "", sheet: ta.value });
+    nav(`/song/${song.id}`);
+  };
+  on(act[1], "click", save, signal); on(act[2], "click", save, signal);
+  root.querySelectorAll<HTMLElement>(".tb-btn").forEach((b) => {
+    const k = b.textContent?.trim(), sec: Record<string, string> = { Intro: "Intro", Verse: "Verse 1", "Pre-Ch.": "Pre-Chorus", Chorus: "Chorus", Bridge: "Bridge", Outro: "Outro", Tag: "Tag" };
+    if (k && sec[k]) on(b, "click", () => { ta.setRangeText(`\n[${sec[k]}]\n`, ta.selectionStart, ta.selectionEnd, "end"); ta.focus(); preview(); }, signal);
+  });
+};
+
+export const wire: Record<string, Wire> = { "add-song": addSong, "chord-editor": chordEditor, "create-setlist": createSetlist, team, login, dashboard, library, "song-detail": songDetail, setlists };

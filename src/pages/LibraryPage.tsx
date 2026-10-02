@@ -6,8 +6,8 @@ import { useAuth } from "../context/AuthContext";
 const BLANK = "{section: verse 1}\n[G]Lyric line goes here";
 
 export function LibraryPage() {
-  const { songs, addSong, updateSong, deleteSong, readOnly } = useLibrary();
-  const isLead = useAuth().isLead && !readOnly;
+  const { songs, addSong, updateSong, deleteSong } = useLibrary();
+  const { isLead } = useAuth();
   const [open, setOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [title, setTitle] = useState("");

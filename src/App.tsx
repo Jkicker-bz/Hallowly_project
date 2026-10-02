@@ -33,6 +33,7 @@ export default function App() {
             <Routes>
             <Route path="/" element={<ScreenRoute name="landing" />} />
             <Route path="/song/:songId" element={<ScreenRoute name="song-detail" />} />
+            <Route path="/chord-editor/:songId" element={<ScreenRoute name="chord-editor" />} />
             <Route path="/setlists/:setlistId/perform/:songId" element={<PerformPage />} />
             <Route path="/manage" element={<AppShell />}>
               <Route index element={<HomePage />} />

@@ -96,6 +96,7 @@ export interface CrewAssignment {
 
 export interface Setlist {
   crew?: CrewAssignment[];
+  eventType?: string;
   note?: string;
   /** Key applied to the whole set unless a song has its own override. */
   listKey?: string;

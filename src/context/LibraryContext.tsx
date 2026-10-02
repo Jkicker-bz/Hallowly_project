@@ -2,14 +2,15 @@
 // Swap the internals for API calls later; consumers only use these functions.
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { parseSongBody } from "../lib/chordpro";
+import { parseChordSheet } from "../lib/chordsheet";
 import type { Setlist, SetlistEntry, Song } from "../types/song";
 import type { TeamMember } from "../types/user";
-import { archiveList, fetchAll, fetchChart, pushList } from "../lib/remote";
+import { archiveList, archiveSong, fetchAll, fetchChart, pushList, pushSong } from "../lib/remote";
 import { isBackendConfigured } from "../lib/supabase";
 import { songs as seedSongs, setlists as seedSetlists } from "../data/store";
 
-export interface SongInput { title: string; originalKey: string; bpm?: number; body: string }
-export interface SetlistInput { serviceTitle: string; serviceDate: string; note?: string; entries?: SetlistEntry[]; crew?: Setlist["crew"] }
+export interface SongInput { title: string; originalKey: string; bpm?: number; body: string; artist?: string; style?: string; sheet?: string }
+export interface SetlistInput { serviceTitle: string; serviceDate: string; eventType?: string; note?: string; entries?: SetlistEntry[]; crew?: Setlist["crew"] }
 
 interface Saved { songs: Song[]; setlists: Setlist[]; members: TeamMember[] }
 
@@ -44,8 +45,10 @@ const mkSong = (i: SongInput, id: string): Song => ({
   title: i.title.trim(),
   originalKey: i.originalKey.trim() || "C",
   bpm: i.bpm,
+  artist: i.artist?.trim() || undefined,
+  style: i.style,
   source: i.body,
-  sections: parseSongBody(i.body),
+  sections: i.sheet !== undefined ? parseChordSheet(i.sheet) : parseSongBody(i.body),
 });
 
 interface Ctx {
@@ -57,7 +60,7 @@ interface Ctx {
   ensureChart: (id: string) => void;
   getSongById: (id: string) => Song | undefined;
   getSetlistById: (id: string) => Setlist | undefined;
-  addSong: (i: SongInput) => void;
+  addSong: (i: SongInput) => string;
   updateSong: (id: string, i: SongInput) => void;
   deleteSong: (id: string) => void;
   addSetlist: (i: SetlistInput) => void;
@@ -125,16 +128,28 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
     setlists: [...data.setlists].sort((a, b) => a.serviceDate.localeCompare(b.serviceDate)),
     getSongById: (id) => data.songs.find((s) => s.id === id),
     getSetlistById: (id) => data.setlists.find((s) => s.id === id),
-    addSong: (i) => setData((d) => ({ ...d, songs: [...d.songs, mkSong(i, uid("song"))] })),
-    updateSong: (id, i) => setData((d) => ({ ...d, songs: d.songs.map((s) => (s.id === id ? mkSong(i, id) : s)) })),
-    deleteSong: (id) =>
+    addSong: (i) => {
+      const song = mkSong(i, uid("song"));
+      setData((d) => ({ ...d, songs: [...d.songs, song] }));
+      if (isBackendConfigured) pushSong(song).catch(() => setStatus("error"));
+      return song.id;
+    },
+    updateSong: (id, i) => {
+      const prev = data.songs.find((s) => s.id === id);
+      const song = mkSong({ artist: prev?.artist, style: prev?.style, ...i }, id);
+      setData((d) => ({ ...d, songs: d.songs.map((s) => (s.id === id ? song : s)) }));
+      if (isBackendConfigured) pushSong(song).catch(() => setStatus("error"));
+    },
+    deleteSong: (id) => {
+      if (isBackendConfigured) archiveSong(id).catch(() => setStatus("error"));
       setData((d) => ({
         ...d,
         songs: d.songs.filter((s) => s.id !== id),
         setlists: d.setlists.map((s) => ({ ...s, entries: s.entries.filter((e) => e.songId !== id) })),
-      })),
+      }));
+    },
     addSetlist: (i) => {
-      const sl: Setlist = { id: uid("setlist"), serviceTitle: i.serviceTitle.trim() || "Service", serviceDate: i.serviceDate, note: i.note, entries: i.entries ?? [], crew: i.crew ?? [] };
+      const sl: Setlist = { id: uid("setlist"), serviceTitle: i.serviceTitle.trim() || "Service", serviceDate: i.serviceDate, eventType: i.eventType, note: i.note, entries: i.entries ?? [], crew: i.crew ?? [] };
       setData((d) => ({ ...d, setlists: [...d.setlists, sl] }));
       if (isBackendConfigured) pushList(sl).catch(() => setStatus("error"));
     },
