@@ -9,7 +9,7 @@ import { isBackendConfigured } from "../lib/supabase";
 import { songs as seedSongs, setlists as seedSetlists } from "../data/store";
 
 export interface SongInput { title: string; originalKey: string; bpm?: number; body: string }
-export interface SetlistInput { serviceTitle: string; serviceDate: string }
+export interface SetlistInput { serviceTitle: string; serviceDate: string; note?: string; entries?: SetlistEntry[]; crew?: Setlist["crew"] }
 
 interface Saved { songs: Song[]; setlists: Setlist[]; members: TeamMember[] }
 
@@ -134,7 +134,7 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
         setlists: d.setlists.map((s) => ({ ...s, entries: s.entries.filter((e) => e.songId !== id) })),
       })),
     addSetlist: (i) => {
-      const sl: Setlist = { id: uid("setlist"), serviceTitle: i.serviceTitle.trim() || "Service", serviceDate: i.serviceDate, entries: [], crew: [] };
+      const sl: Setlist = { id: uid("setlist"), serviceTitle: i.serviceTitle.trim() || "Service", serviceDate: i.serviceDate, note: i.note, entries: i.entries ?? [], crew: i.crew ?? [] };
       setData((d) => ({ ...d, setlists: [...d.setlists, sl] }));
       if (isBackendConfigured) pushList(sl).catch(() => setStatus("error"));
     },

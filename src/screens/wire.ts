@@ -36,7 +36,7 @@ function repeat<T>(root: ParentNode, sel: string, rows: T[], fill: (el: HTMLElem
 }
 
 const login: Wire = (root, { auth, nav, backend }, signal) => {
-  if (backend && auth.signedIn) { nav("/ui/dashboard", { replace: true }); return; }
+  if (backend && auth.signedIn) { nav("/dashboard", { replace: true }); return; }
   const show = (join: boolean) => {
     q(root, "#view-login")?.classList.toggle("visible", !join);
     q(root, "#view-register")?.classList.toggle("visible", join);
@@ -60,7 +60,7 @@ const login: Wire = (root, { auth, nav, backend }, signal) => {
     btn.disabled = true;
     const err = await auth.signInWithPassword(email(), pw);
     btn.disabled = false;
-    if (err) say(err); else nav("/ui/dashboard");
+    if (err) say(err); else nav("/dashboard");
   };
   on(btn, "click", submit, signal);
   root.querySelectorAll("#l-email, #l-pw").forEach((i) => on(i, "keydown", (e) => { if ((e as KeyboardEvent).key === "Enter") submit(); }, signal));
@@ -126,10 +126,10 @@ const dashboard: Wire = (root, { auth, lib, nav }, signal) => {
 
   const actions = root.querySelectorAll(".card-action");
   on(actions[0], "click", () => nav("/setlists"), signal);
-  on(actions[1], "click", () => nav("/ui/library"), signal);
+  on(actions[1], "click", () => nav("/library"), signal);
   const qa = root.querySelectorAll(".qa-btn");
-  on(qa[0], "click", () => nav("/library"), signal);
-  on(qa[1], "click", () => nav("/setlists"), signal);
+  on(qa[0], "click", () => nav("/manage/library"), signal);
+  on(qa[1], "click", () => nav("/create-setlist"), signal);
 };
 
 
@@ -157,9 +157,9 @@ const library: Wire = (root, { auth, lib, nav }, signal) => {
   const f = (c: string) => c;
   const g = <T extends HTMLElement>(id: string) => q<T>(root, "#" + id)!;
   text(root, ".hero-eyebrow", `${auth.team?.name ?? "Hallowly"} · ${lib.songs.length} Songs`);
-  if (auth.user) { const b = q(root, ".nav-actions .btn-ghost"); if (b) { b.textContent = "Dashboard"; b.setAttribute("href", "/ui/dashboard"); } }
+  if (auth.user) { const b = q(root, ".nav-actions .btn-ghost"); if (b) { b.textContent = "Dashboard"; b.setAttribute("href", "/dashboard"); } }
   const team = q(root, ".team-cta"); if (team) team.style.display = auth.signedIn ? "none" : "";
-  root.querySelectorAll<HTMLElement>(".nav-actions .btn-primary, .add-song-btn, #song-modal .mf-btn.primary").forEach((b) => { b.style.display = auth.isLead ? "" : "none"; if (!b.classList.contains("mf-btn")) b.setAttribute("href", "/library"); });
+  root.querySelectorAll<HTMLElement>(".nav-actions .btn-primary, .add-song-btn, #song-modal .mf-btn.primary").forEach((b) => { b.style.display = auth.isLead ? "" : "none"; if (!b.classList.contains("mf-btn")) b.setAttribute("href", "/manage/library"); });
 
   // side panels
   const byStyle: Record<string, number> = {}, keys: Record<string, number> = {};
@@ -214,7 +214,7 @@ const library: Wire = (root, { auth, lib, nav }, signal) => {
       g("modal-chords").innerHTML = song.loaded === false ? "Loading chart…" :
         (auth.signedIn ? song.sections : song.sections.slice(0, 1)).map((sec) => `<span class="cp-section">[${esc(sec.label ?? sec.kind)}]</span>\n` +
           sec.lines.map((l) => (l.chords.length ? chordRow(l, f) + "\n" : "") + esc(l.lyric)).join("\n")).join("\n\n");
-      const full = q(root, '#song-modal a[href^="/ui/song-detail"]'); full?.setAttribute("href", `/ui/song-detail?song=${song.id}`);
+      const full = q(root, '#song-modal a[href^="/song-detail"]'); full?.setAttribute("href", `/song/${song.id}`);
       lib.ensureChart(song.id);
     }
   };
@@ -232,7 +232,7 @@ const library: Wire = (root, { auth, lib, nav }, signal) => {
   on(g("card-grid"), "click", (e) => {
     const t = e.target as HTMLElement, card = t.closest<HTMLElement>(".song-card"), act = t.closest<HTMLElement>("[data-act]")?.dataset.act;
     if (!card) return;
-    if (act === "set") nav("/setlists"); else if (act === "view") nav(`/ui/song-detail?song=${card.dataset.id}`); else { L.open = card.dataset.id!; render(); }
+    if (act === "set") nav("/manage/setlists"); else if (act === "view") nav(`/song/${card.dataset.id}`); else { L.open = card.dataset.id!; render(); }
   }, signal);
   on(g("card-grid"), "keydown", (e) => { const k = e as KeyboardEvent, c = (k.target as HTMLElement).closest<HTMLElement>(".song-card"); if (k.key === "Enter" && c) { L.open = c.dataset.id!; render(); } }, signal);
   on(g("pagination"), "click", (e) => { const b = (e.target as HTMLElement).closest<HTMLElement>("[data-page]"); if (b) { L.page = Number(b.dataset.page); render(); root.querySelector(".page-body")?.scrollIntoView({ behavior: "smooth" }); } }, signal);
@@ -245,11 +245,11 @@ const library: Wire = (root, { auth, lib, nav }, signal) => {
   chips(); render();
 };
 
-// ---------- song detail (/ui/song-detail?song=ID) ----------
+// ---------- song detail (/song/ID) ----------
 const D = { id: "", shift: 0, size: 13 };
 
 const songDetail: Wire = (root, { auth, lib, nav }, signal) => {
-  const id = new URLSearchParams(window.location.search).get("song") ?? lib.songs[0]?.id;
+  const id = window.location.pathname.split("/")[2] ?? lib.songs[0]?.id;
   const song = id ? lib.getSongById(id) : undefined;
   if (!song) { text(root, ".hero-title", lib.songs.length ? "Song not found" : "Loading…"); return; }
   if (D.id !== song.id) { D.id = song.id; D.shift = 0; }
@@ -283,7 +283,7 @@ const songDetail: Wire = (root, { auth, lib, nav }, signal) => {
   on(btns[0], "click", bump(() => D.shift--), signal); on(btns[1], "click", bump(() => D.shift++), signal);
   on(btns[2], "click", bump(() => (D.size = Math.max(10, D.size - 1))), signal); on(btns[3], "click", bump(() => (D.size = Math.min(24, D.size + 1))), signal);
   on(actions[1], "click", () => window.print(), signal);
-  on(actions[2], "click", () => nav("/setlists"), signal);
+  on(actions[2], "click", () => nav("/manage/setlists"), signal);
   on(q(root, ".eb-link"), "click", () => nav("/library"), signal);
 };
 
@@ -336,9 +336,99 @@ const setlists: Wire = (root, { auth, lib, nav }, signal) => {
     const act = root.querySelectorAll<HTMLElement>(".topbar-actions .btn-xs");
     on(act[0], "click", () => window.print(), signal);
     if (act[1]) act[1].style.display = "none";
-    if (act[2]) { act[2].style.display = auth.isLead ? "" : "none"; on(act[2], "click", () => nav("/setlists"), signal); }
+    if (act[2]) { act[2].style.display = auth.isLead ? "" : "none"; on(act[2], "click", () => nav("/manage/setlists"), signal); }
   };
   paint();
 };
 
-export const wire: Record<string, Wire> = { login, dashboard, library, "song-detail": songDetail, setlists };
+// ---------- create set list ----------
+const CS = { picked: [] as { id: string; key: string }[], style: "all", q: "", crew: new Set<string>(), empty: "" };
+
+const createSetlist: Wire = (root, { auth, lib, nav, backend }, signal) => {
+  const g = <T extends HTMLElement>(id: string) => q<T>(root, "#" + id)!;
+  text(root, ".panel-eyebrow", `${auth.team?.name ?? "Hallowly"} · ${lib.songs.length} songs`);
+  if (!CS.empty) CS.empty = g("order-list").innerHTML;
+  q(root, ".order-footer")?.style.setProperty("display", "none");
+
+  const picker = () => {
+    const t = CS.q.toLowerCase();
+    const rows = lib.songs.filter((s) => (CS.style === "all" || styleKey(s.style) === CS.style) && (!t || `${s.title} ${s.artist ?? ""}`.toLowerCase().includes(t)));
+    g("picker-scroll").innerHTML = rows.map((s) => {
+      const on = CS.picked.some((p) => p.id === s.id);
+      return `<div class="picker-song${on ? " added" : ""}" data-id="${s.id}"><div class="style-dot" style="background:${STYLE[styleKey(s.style)].bar}"></div><div class="ps-info"><div class="ps-name">${esc(s.title)}</div><div class="ps-meta">${esc(s.artist ?? "")}</div></div><span class="ps-key">${esc(s.originalKey)}</span><div class="add-icon">${on ? "✓" : "+"}</div></div>`;
+    }).join("");
+  };
+  const order = () => {
+    const n = CS.picked.length;
+    g("order-count").textContent = `${n} song${n === 1 ? "" : "s"} added`;
+    g("order-list").innerHTML = n ? CS.picked.map((p, i) => {
+      const s = lib.getSongById(p.id)!;
+      return `<div class="order-item" draggable="true" data-i="${i}"><span class="drag-handle">⠿</span><span class="order-num">${String(i + 1).padStart(2, "0")}</span><div class="order-info"><div class="order-name">${esc(s.title)}</div><div class="order-artist">${esc(s.artist ?? "")}</div></div><div class="order-key-wrap"><button class="transpose-btn" data-k="-1">♭</button><span class="order-key">${esc(p.key)}</span><button class="transpose-btn" data-k="1">♯</button></div><button class="remove-btn" data-rm="1">×</button></div>`;
+    }).join("") : CS.empty;
+  };
+  repeat(root, ".member-row", lib.members, (el, m) => {
+    text(el, ".m-name", m.name); text(el, ".m-role", m.instrument); text(el, ".m-av", initials(m.name));
+    const t = q(el, ".m-toggle"); t?.classList.toggle("on", CS.crew.has(m.id));
+    on(el, "click", () => { if (CS.crew.has(m.id)) CS.crew.delete(m.id); else CS.crew.add(m.id); t?.classList.toggle("on", CS.crew.has(m.id)); }, signal);
+  });
+
+  on(g("picker-scroll"), "click", (e) => {
+    const id = (e.target as HTMLElement).closest<HTMLElement>(".picker-song")?.dataset.id; if (!id) return;
+    CS.picked = CS.picked.some((p) => p.id === id) ? CS.picked.filter((p) => p.id !== id) : [...CS.picked, { id, key: lib.getSongById(id)!.originalKey }];
+    picker(); order();
+  }, signal);
+  on(g("order-list"), "click", (e) => {
+    const t = e.target as HTMLElement, i = Number(t.closest<HTMLElement>(".order-item")?.dataset.i);
+    if (Number.isNaN(i)) return;
+    if (t.dataset.rm) CS.picked.splice(i, 1);
+    else if (t.dataset.k) { const k = Number(t.dataset.k); CS.picked[i].key = transposeChord(CS.picked[i].key, k, k < 0); }
+    else return;
+    picker(); order();
+  }, signal);
+  let from = -1;
+  on(g("order-list"), "dragstart", (e) => { from = Number((e.target as HTMLElement).closest<HTMLElement>(".order-item")?.dataset.i); }, signal);
+  on(g("order-list"), "dragover", (e) => e.preventDefault(), signal);
+  on(g("order-list"), "drop", (e) => {
+    const to = Number((e.target as HTMLElement).closest<HTMLElement>(".order-item")?.dataset.i);
+    if (from < 0 || Number.isNaN(to)) return;
+    CS.picked.splice(to, 0, CS.picked.splice(from, 1)[0]); from = -1; order();
+  }, signal);
+  on(q(root, ".search-input"), "input", (e) => { CS.q = (e.target as HTMLInputElement).value; picker(); }, signal);
+  const styles = ["all", "contemporary", "gospel", "latin"];
+  root.querySelectorAll<HTMLElement>(".fchip").forEach((c, i) => on(c, "click", () => { CS.style = styles[i]; root.querySelectorAll(".fchip").forEach((x) => x.classList.toggle("active", x === c)); picker(); }, signal));
+  root.querySelectorAll<HTMLElement>(".echip").forEach((c) => on(c, "click", () => root.querySelectorAll(".echip").forEach((x) => x.classList.toggle("active", x === c)), signal));
+
+  const save = () => {
+    const title = q<HTMLInputElement>(root, '.details-section input[type="text"]')!.value.trim(), day = q<HTMLInputElement>(root, 'input[type="date"]')!.value;
+    if (backend && !auth.signedIn) return nav("/login");
+    if (backend && !auth.isLead) return alert("Only worship leads can create set lists.");
+    if (!title || !day) return alert("Add a title and a date first.");
+    lib.addSetlist({
+      serviceTitle: title, serviceDate: day, note: q(root, ".echip.active")?.textContent ?? undefined,
+      entries: CS.picked.map((p) => ({ songId: p.id, keyOverride: p.key !== lib.getSongById(p.id)?.originalKey ? p.key : undefined })),
+      crew: [...CS.crew].map((id) => ({ memberId: id, role: lib.members.find((m) => m.id === id)?.instrument ?? "" })),
+    });
+    CS.picked = []; CS.crew = new Set(); nav("/setlists");
+  };
+  root.querySelectorAll(".topbar-right .btn").forEach((b) => on(b, "click", save, signal));
+  picker(); order();
+};
+
+// ---------- team ----------
+const team: Wire = (root, { auth, lib, nav }, signal) => {
+  text(root, ".topbar-sub", `${auth.team?.name ?? "Hallowly"} · ${lib.members.length} members`);
+  const cards = root.querySelectorAll<HTMLElement>(".stat-strip .stat-card");
+  text(cards[0], ".sc-value", String(lib.members.length)); text(cards[0], ".sc-sub", "On the team");
+  [1, 2].forEach((i) => { if (cards[i]) cards[i].style.display = "none"; });
+  text(cards[3], ".sc-value", auth.isLead ? "Lead" : "Member");
+  root.querySelectorAll<HTMLElement>(".topbar-right .btn, .card-action").forEach((b) => (b.style.display = "none"));
+  repeat(root, ".member-table tbody tr", lib.members, (el, m) => {
+    text(el, ".m-avatar", initials(m.name)); text(el, ".m-name", m.name); text(el, ".m-email", m.instrument);
+    const rb = q(el, ".role-badge"); if (rb) { rb.textContent = m.instrument; rb.className = "role-badge " + (m.instrument === "Lead" ? "rb-lead" : "rb-vocalist"); }
+    text(el, ".status-text", "Active"); text(el, ".joined-date", "—");
+    const ra = q(el, ".row-actions");
+    if (ra) { ra.innerHTML = auth.isLead ? '<button class="row-btn edit">Manage</button>' : ""; on(q(ra, "button"), "click", () => nav("/manage/team"), signal); }
+  });
+};
+
+export const wire: Record<string, Wire> = { "create-setlist": createSetlist, team, login, dashboard, library, "song-detail": songDetail, setlists };

@@ -14,8 +14,7 @@ import { SetlistsPage } from "./pages/SetlistsPage";
 import { LibraryPage } from "./pages/LibraryPage";
 import { TeamPage } from "./pages/TeamPage";
 import { SettingsPage } from "./pages/SettingsPage";
-import { LoginPage } from "./pages/LoginPage";
-import { ScreenIndex, ScreenRoute } from "./screens/ScreenRoute";
+import { ScreenRoute } from "./screens/ScreenRoute";
 import { PerformPage } from "./pages/PerformPage";
 
 /**
@@ -32,18 +31,18 @@ export default function App() {
         <LibraryProvider>
           <BrowserRouter>
             <Routes>
-              <Route element={<AppShell />}>
-                <Route path="/" element={<HomePage />} />
-                <Route path="/setlists" element={<SetlistsPage />} />
-                <Route path="/library" element={<LibraryPage />} />
-                <Route path="/team" element={<TeamPage />} />
-                <Route path="/settings" element={<SettingsPage />} />
-                <Route path="/login" element={<LoginPage />} />
-              </Route>
-              <Route path="/ui" element={<ScreenIndex />} />
-            <Route path="/ui/:name" element={<ScreenRoute />} />
+            <Route path="/" element={<ScreenRoute name="landing" />} />
+            <Route path="/song/:songId" element={<ScreenRoute name="song-detail" />} />
             <Route path="/setlists/:setlistId/perform/:songId" element={<PerformPage />} />
-            </Routes>
+            <Route path="/manage" element={<AppShell />}>
+              <Route index element={<HomePage />} />
+              <Route path="setlists" element={<SetlistsPage />} />
+              <Route path="library" element={<LibraryPage />} />
+              <Route path="team" element={<TeamPage />} />
+              <Route path="settings" element={<SettingsPage />} />
+            </Route>
+            <Route path="/:name" element={<ScreenRoute />} />
+          </Routes>
           </BrowserRouter>
         </LibraryProvider>
       </ThemeProvider>

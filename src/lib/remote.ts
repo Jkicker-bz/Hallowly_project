@@ -76,6 +76,12 @@ export async function pushList(s: Setlist): Promise<void> {
     );
     if (r.error) throw r.error;
   }
+  const dl = await sb.from("list_leads").delete().eq("list_id", s.id);
+  if (dl.error) throw dl.error;
+  if (s.crew?.length) {
+    const rl = await sb.from("list_leads").insert(s.crew.map((c) => ({ list_id: s.id, lead_id: c.memberId })));
+    if (rl.error) throw rl.error;
+  }
 }
 
 /** Soft-delete, matching the `active` flag the old app used. */

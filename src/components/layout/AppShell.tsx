@@ -13,11 +13,11 @@ interface TabDef {
 }
 
 const TABS: TabDef[] = [
-  { to: "/", label: "Home", icon: "⬡" },
-  { to: "/setlists", label: "Setlists", icon: "≡" },
-  { to: "/library", label: "Library", icon: "◈" },
-  { to: "/team", label: "Team", icon: "⊞", leadOnly: true },
-  { to: "/settings", label: "Settings", icon: "◇" },
+  { to: "/manage", label: "Home", icon: "⬡" },
+  { to: "/manage/setlists", label: "Setlists", icon: "≡" },
+  { to: "/manage/library", label: "Library", icon: "◈" },
+  { to: "/manage/team", label: "Team", icon: "⊞", leadOnly: true },
+  { to: "/manage/settings", label: "Settings", icon: "◇" },
 ];
 
 /**
@@ -57,7 +57,7 @@ export function AppShell() {
           <NavLink
             key={tab.to}
             to={tab.to}
-            end={tab.to === "/"}
+            end={tab.to === "/manage"}
             className={({ isActive }) => "hw-tab" + (isActive ? " active" : "")}
           >
             <span className="hw-tab-icon" aria-hidden="true">{tab.icon}</span>
