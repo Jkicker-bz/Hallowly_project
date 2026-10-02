@@ -1,4 +1,5 @@
 /* Light-touch improvements applied to every ported screen (design unchanged). */
+.pg.pg { --silver: #A9A9A7; --muted2: #777670; --muted: #5E5D59; }
 .pg { min-height: 100vh; -webkit-font-smoothing: antialiased; scroll-behavior: smooth; }
 .pg ::selection { background: rgba(155, 89, 182, .35); }
 .pg a:focus-visible, .pg button:focus-visible, .pg input:focus-visible, .pg select:focus-visible, .pg textarea:focus-visible { outline: 2px solid #9B59B6; outline-offset: 2px; }

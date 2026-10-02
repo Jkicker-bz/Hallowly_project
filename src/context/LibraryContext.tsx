@@ -20,6 +20,10 @@ const SEED_MEMBERS: TeamMember[] = [
   { id: "m-4", name: "Dee", instrument: "Drums" },
 ];
 const KEY = "hallowly:library:v1";
+const CACHE = "hallowly:remote-cache:v1";
+function cached(): Saved | null {
+  try { const r = localStorage.getItem(CACHE); return r ? JSON.parse(r) : null; } catch { return null; }
+}
 
 function load(): Saved {
   try {
@@ -72,25 +76,35 @@ interface Ctx {
 const LibraryContext = createContext<Ctx | null>(null);
 
 export function LibraryProvider({ children }: { children: ReactNode }) {
-  const [data, setData] = useState<Saved>(() => (isBackendConfigured ? { songs: [], setlists: [], members: [] } : load()));
-  const [status, setStatus] = useState<"loading" | "ready" | "error">(isBackendConfigured ? "loading" : "ready");
+  const [data, setData] = useState<Saved>(() => (isBackendConfigured ? cached() ?? { songs: [], setlists: [], members: [] } : load()));
+  const [status, setStatus] = useState<"loading" | "ready" | "error">(isBackendConfigured && !cached() ? "loading" : "ready");
   useEffect(() => {
     if (isBackendConfigured) return;
     try { localStorage.setItem(KEY, JSON.stringify(data)); } catch { /* storage unavailable */ }
   }, [data]);
   useEffect(() => {
     if (!isBackendConfigured) return;
-    fetchAll().then((d) => { setData(d); setStatus("ready"); }).catch(() => setStatus("error"));
+    // Show the cached copy instantly, refresh in the background (keeping charts already downloaded).
+    fetchAll()
+      .then((d) => {
+        setData((prev) => ({ ...d, songs: d.songs.map((n) => { const p = prev.songs.find((x) => x.id === n.id); return p?.loaded ? { ...n, sections: p.sections, source: p.source, loaded: true } : n; }) }));
+        setStatus("ready");
+      })
+      .catch(() => setStatus((s) => (s === "ready" ? s : "error")));
   }, []);
+  useEffect(() => {
+    if (isBackendConfigured && status === "ready") try { localStorage.setItem(CACHE, JSON.stringify(data)); } catch { /* quota */ }
+  }, [data, status]);
 
   const inflight = useRef(new Set<string>());
+  const fresh = useRef(new Set<string>()); // charts re-checked this session
   const ensureChart = (id: string) => {
     const s = data.songs.find((x) => x.id === id);
-    if (!isBackendConfigured || !s || s.loaded !== false || inflight.current.has(id)) return;
+    if (!isBackendConfigured || !s || inflight.current.has(id) || (s.loaded !== false && fresh.current.has(id))) return;
     inflight.current.add(id);
     fetchChart(id)
-      .then((c) => setData((d) => ({ ...d, songs: d.songs.map((x) => (x.id === id ? { ...x, ...c, loaded: true } : x)) })))
-      .catch(() => setStatus("error"))
+      .then((c) => { fresh.current.add(id); setData((d) => ({ ...d, songs: d.songs.map((x) => (x.id === id ? { ...x, ...c, loaded: true } : x)) })); })
+      .catch(() => { if (s.loaded === false) setStatus("error"); })
       .finally(() => inflight.current.delete(id));
   };
 

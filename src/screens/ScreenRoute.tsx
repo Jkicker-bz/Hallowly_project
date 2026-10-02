@@ -27,7 +27,11 @@ export function ScreenRoute() {
     Promise.all([h(), c()]).then(([m]) => setMarkup(m as string));
   }, [name]);
 
-  if (markup === null) return <div role="status" style={{ padding: 24, color: "#888780" }}>Loading…</div>;
+  useEffect(() => { // warm the most-used screens while idle
+    const idle = window.requestIdleCallback ?? ((f: () => void) => setTimeout(f, 800));
+    idle(() => ["dashboard", "library", "setlists", "song-detail"].forEach((n) => { html[`./html/${n}.html`]?.(); css[`./css/${n}.css`]?.(); }));
+  }, []);
+  if (markup === null || (wire[name] && lib.status === "loading")) return <div role="status" style={{ padding: 24, color: "#888780" }}>Loading…</div>;
   if (!markup) return name === "404" ? null : <Navigate to="/ui/404" replace />;
   const w = wire[name];
   return <Screen cls={`pg-${name}`} html={markup} hydrate={w && ((root, signal) => w(root, { auth, lib, nav, backend: isBackendConfigured }, signal))} />;

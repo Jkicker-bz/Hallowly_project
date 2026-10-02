@@ -1,7 +1,7 @@
 /* Hallowly design language v2 — ported from the approved screens, mobile-first. */
 :root, [data-theme="dark"] {
   --hw-surface-wall-raised: #202020; --hw-border: rgba(255,255,255,.12); --hw-border-faint: rgba(255,255,255,.07);
-  --hw-silver-dim: #888780; --hw-muted: #6B6A65; --hw-radius-sm: 3px; --hw-radius-md: 6px;
+  --hw-silver: #A9A9A7; --hw-silver-dim: #777670; --hw-muted: #5E5D59; --hw-radius-sm: 3px; --hw-radius-md: 6px;
 }
 body { font-size: 13px; -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent; }
 .hw-app-header { position: sticky; top: 0; z-index: 5; padding: calc(14px + env(safe-area-inset-top, 0px)) 18px 14px; background: color-mix(in srgb, var(--hw-surface-void) 88%, transparent); backdrop-filter: blur(10px); border-bottom: .5px solid var(--hw-border-faint); }

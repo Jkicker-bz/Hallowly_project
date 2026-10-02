@@ -32,11 +32,11 @@ async function table(name: string, cols = "*"): Promise<Row[]> {
 export async function fetchAll(): Promise<{ songs: Song[]; setlists: Setlist[]; members: TeamMember[] }> {
   if (!supabase) throw new Error("Backend not configured");
   const [songRows, leads, lists, listSongs, listLeads] = await Promise.all([
-    table("songs"),
+    table("songs", "id,title,artist,style,key,bpm,active"),
     table("leads", "id,initials,full_name,role,avatar_color,active"), // never request email
-    table("lists"),
+    table("lists", "id,name,date,list_key,note,active"),
     table("list_songs"),
-    table("list_leads"),
+    table("list_leads", "list_id,lead_id"),
   ]);
 
   const songs: Song[] = songRows

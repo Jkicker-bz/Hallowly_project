@@ -287,4 +287,58 @@ const songDetail: Wire = (root, { auth, lib, nav }, signal) => {
   on(q(root, ".eb-link"), "click", () => nav("/library"), signal);
 };
 
-export const wire: Record<string, Wire> = { login, dashboard, library, "song-detail": songDetail };
+// ---------- setlists ----------
+const SL = { id: "" };
+
+const setlists: Wire = (root, { auth, lib, nav }, signal) => {
+  const today = new Date().toISOString().slice(0, 10);
+  const all = [...lib.setlists.filter((s) => s.serviceDate >= today), ...lib.setlists.filter((s) => s.serviceDate < today).reverse()];
+  if (!all.some((s) => s.id === SL.id)) SL.id = all[0]?.id ?? "";
+  const nameOf = (id: string) => lib.members.find((m) => m.id === id)?.name ?? "";
+  const mon = (d: string) => date(d).toLocaleDateString("en", { month: "short", day: "numeric" }).toUpperCase();
+
+  const paint = () => {
+    const sl = all.find((s) => s.id === SL.id);
+    repeat(root, ".set-item", all, (el, s) => {
+      text(el, ".set-item-name", s.serviceTitle); text(el, ".set-item-date", mon(s.serviceDate));
+      const m = el.querySelectorAll(".set-item-meta span");
+      if (m[0]) m[0].textContent = `${s.entries.length} songs`;
+      if (m[1]) m[1].textContent = (s.crew ?? []).map((c) => nameOf(c.memberId)).filter(Boolean).slice(0, 2).join(" · ") || "Unassigned";
+      el.style.opacity = s.entries.length ? "" : ".55";
+      const tag = q(el, ".set-tag"); if (tag) tag.textContent = s.entries.length ? (s.serviceDate < today ? "Past" : "Ready") : "Draft";
+      el.classList.toggle("active", s.id === SL.id);
+      on(el, "click", () => { SL.id = s.id; paint(); }, signal);
+    });
+    text(root, ".detail-set-name", sl ? `${sl.serviceTitle} — ${mon(sl.serviceDate)}` : "No set lists yet");
+    const pill = q(root, ".status-pill"); if (pill) { pill.textContent = sl?.entries.length ? "Ready" : "Draft"; pill.className = "status-pill " + (sl?.entries.length ? "sp-ready" : "sp-draft"); }
+    const v = root.querySelectorAll(".meta-chip-value");
+    const styles = sl?.entries.map((e) => STYLE[styleKey(lib.getSongById(e.songId)?.style)].label) ?? [];
+    const top = Object.entries(styles.reduce<Record<string, number>>((a, k) => ((a[k] = (a[k] ?? 0) + 1), a), {})).sort((a, b) => b[1] - a[1])[0]?.[0];
+    if (sl) {
+      if (v[0]) v[0].textContent = date(sl.serviceDate).toLocaleDateString("en", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
+      if (v[1]) v[1].textContent = sl.note ?? "Worship service";
+      if (v[2]) v[2].textContent = String(sl.entries.length).padStart(2, "0");
+      if (v[3]) v[3].textContent = top ?? "—";
+    }
+    repeat(root, ".order-row", (sl?.entries ?? []).map((e, i) => ({ e, i })), (el, { e, i }) => {
+      const song = lib.getSongById(e.songId); if (!song || !sl) return;
+      text(el, ".order-num", String(i + 1).padStart(2, "0")); text(el, ".order-song-name", song.title); text(el, ".order-artist", song.artist ?? "");
+      text(el, ".order-key", e.keyOverride ?? sl.listKey ?? song.originalKey); q(el, ".order-duration")?.remove();
+      const b = el.querySelectorAll<HTMLElement>(".tiny-btn");
+      on(b[0], "click", () => nav(`/setlists/${sl.id}/perform/${song.id}`), signal);
+      if (auth.isLead) on(b[1], "click", () => { if (confirm(`Remove "${song.title}" from this set?`)) lib.removeSongFromSetlist(sl.id, song.id); }, signal);
+      else if (b[1]) b[1].style.display = "none";
+    });
+    repeat(root, ".assigned-row", sl?.crew ?? [], (el, c) => {
+      const n = nameOf(c.memberId); text(el, ".a-avatar", initials(n)); text(el, ".a-name", n); text(el, ".a-role", c.role);
+    });
+    root.querySelectorAll<HTMLElement>(".ds-card").forEach((c) => { if (/activity/i.test(q(c, ".ds-header")?.textContent ?? "")) c.style.display = "none"; });
+    const act = root.querySelectorAll<HTMLElement>(".topbar-actions .btn-xs");
+    on(act[0], "click", () => window.print(), signal);
+    if (act[1]) act[1].style.display = "none";
+    if (act[2]) { act[2].style.display = auth.isLead ? "" : "none"; on(act[2], "click", () => nav("/setlists"), signal); }
+  };
+  paint();
+};
+
+export const wire: Record<string, Wire> = { login, dashboard, library, "song-detail": songDetail, setlists };
