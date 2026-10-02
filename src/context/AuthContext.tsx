@@ -13,6 +13,8 @@ interface AuthContextValue {
   signInWithEmail: (email: string) => Promise<string | null>;
   /** Finish sign-in with the code from the email (works across apps/devices). */
   verifyCode: (email: string, code: string) => Promise<string | null>;
+  signInWithPassword: (email: string, password: string) => Promise<string | null>;
+  resetPassword: (email: string) => Promise<string | null>;
   /** Demo-only role switch (hidden when a backend is connected). */
   signInAs: (role: Role) => void;
   signOut: () => void;
@@ -31,6 +33,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // onAuthStateChange also fires INITIAL_SESSION, so no separate getSession() call is needed.
     const { data: sub } = sb.auth.onAuthStateChange((event, s) => {
       if (event === "TOKEN_REFRESHED") return; // same person, nothing to reload
+      if (event === "PASSWORD_RECOVERY") setTimeout(() => { const p = window.prompt("Choose a new password (8+ characters)"); if (p && p.length >= 8) sb.auth.updateUser({ password: p }); }, 0);
       // Deferred: awaiting Supabase calls inside this callback can deadlock the client.
       setTimeout(async () => {
         const u = s?.user;
@@ -57,6 +60,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     verifyCode: async (email, code) => {
       if (!supabase) return "Backend not configured.";
       const { error } = await supabase.auth.verifyOtp({ email, token: code.trim(), type: "email" });
+      return error ? error.message : null;
+    },
+    signInWithPassword: async (email, password) => {
+      if (!supabase) return "Backend not configured.";
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      return error ? error.message : null;
+    },
+    resetPassword: async (email) => {
+      if (!supabase) return "Backend not configured.";
+      const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/` });
       return error ? error.message : null;
     },
     signInAs: (role) => setUser(demo(role)),

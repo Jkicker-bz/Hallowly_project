@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
-import { Link, Navigate, useParams } from "react-router-dom";
+import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import { useLibrary } from "../context/LibraryContext";
+import { isBackendConfigured } from "../lib/supabase";
 import { Screen } from "./Screen";
+import { wire } from "./wire";
 
 type Loader = () => Promise<unknown>;
 const html = import.meta.glob("./html/*.html", { query: "?raw", import: "default" }) as Record<string, Loader>;
@@ -11,6 +15,9 @@ const names = Object.keys(html).map((k) => k.match(/html\/(.*)\.html/)![1]);
 export function ScreenRoute() {
   const { name = "" } = useParams();
   const [markup, setMarkup] = useState<string | null>(null);
+  const auth = useAuth();
+  const lib = useLibrary();
+  const nav = useNavigate();
 
   useEffect(() => {
     setMarkup(null);
@@ -22,7 +29,8 @@ export function ScreenRoute() {
 
   if (markup === null) return <div role="status" style={{ padding: 24, color: "#888780" }}>Loading…</div>;
   if (!markup) return name === "404" ? null : <Navigate to="/ui/404" replace />;
-  return <Screen cls={`pg-${name}`} html={markup} />;
+  const w = wire[name];
+  return <Screen cls={`pg-${name}`} html={markup} hydrate={w && ((root, signal) => w(root, { auth, lib, nav, backend: isBackendConfigured }, signal))} />;
 }
 
 /** /ui — index of every screen, for review. */
