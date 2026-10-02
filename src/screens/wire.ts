@@ -3,6 +3,8 @@
 import type { NavigateFunction } from "react-router-dom";
 import type { useAuth } from "../context/AuthContext";
 import type { useLibrary } from "../context/LibraryContext";
+import type { Song, SongLine } from "../types/song";
+import { semitoneDiff, spell, transposeChord } from "../lib/transpose";
 
 export interface Deps {
   auth: ReturnType<typeof useAuth>;
@@ -124,10 +126,165 @@ const dashboard: Wire = (root, { auth, lib, nav }, signal) => {
 
   const actions = root.querySelectorAll(".card-action");
   on(actions[0], "click", () => nav("/setlists"), signal);
-  on(actions[1], "click", () => nav("/library"), signal);
+  on(actions[1], "click", () => nav("/ui/library"), signal);
   const qa = root.querySelectorAll(".qa-btn");
   on(qa[0], "click", () => nav("/library"), signal);
   on(qa[1], "click", () => nav("/setlists"), signal);
 };
 
-export const wire: Record<string, Wire> = { login, dashboard };
+
+
+// ---------- shared chart helpers ----------
+const esc = (t: string) => t.replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[c]!);
+/** Chord symbols placed at their character offsets (monospace), e.g. "G     D". */
+const chordRow = (l: SongLine, f: (c: string) => string) =>
+  l.chords.reduce((r, c) => r.padEnd(Math.max(c.charIndex, r ? r.length + 1 : 0)) + f(c.symbol), "");
+const styleKey = (s?: string) => { const k = (s ?? "").toLowerCase(); return ["gospel", "praise", "hymn"].find((x) => k.includes(x)) ?? (/latin|cumbia/.test(k) ? "latin" : "contemporary"); };
+const STYLE: Record<string, { label: string; cls: string; stripe: string; chip: string; text: string; bar: string }> = {
+  contemporary: { label: "Contemporary", cls: "ctag-c", stripe: "stripe-contemporary", chip: "rgba(155,89,182,.12)", text: "#C084E0", bar: "var(--accent)" },
+  gospel: { label: "Gospel", cls: "ctag-g", stripe: "stripe-gospel", chip: "rgba(160,129,94,.12)", text: "#C4A07A", bar: "var(--bronze)" },
+  latin: { label: "Latin", cls: "ctag-l", stripe: "stripe-latin", chip: "rgba(230,126,34,.1)", text: "#E8944A", bar: "var(--amber)" },
+  praise: { label: "Praise", cls: "ctag-p", stripe: "stripe-praise", chip: "rgba(26,188,156,.1)", text: "#4DD4B9", bar: "var(--aqua)" },
+  hymn: { label: "Hymn", cls: "ctag-h", stripe: "stripe-hymn", chip: "rgba(192,192,192,.08)", text: "var(--silver)", bar: "var(--silver)" },
+};
+const usedIn = (lib: Deps["lib"], id: string) => lib.setlists.filter((l) => l.entries.some((e) => e.songId === id)).length;
+
+// ---------- library ----------
+const L = { page: 1, sort: "alpha", q: "", style: "", key: "", open: null as string | null };
+
+const library: Wire = (root, { auth, lib, nav }, signal) => {
+  const PER = 12;
+  const f = (c: string) => c;
+  const g = <T extends HTMLElement>(id: string) => q<T>(root, "#" + id)!;
+  text(root, ".hero-eyebrow", `${auth.team?.name ?? "Hallowly"} · ${lib.songs.length} Songs`);
+  if (auth.user) { const b = q(root, ".nav-actions .btn-ghost"); if (b) { b.textContent = "Dashboard"; b.setAttribute("href", "/ui/dashboard"); } }
+  const team = q(root, ".team-cta"); if (team) team.style.display = auth.signedIn ? "none" : "";
+  root.querySelectorAll<HTMLElement>(".nav-actions .btn-primary, .add-song-btn, #song-modal .mf-btn.primary").forEach((b) => { b.style.display = auth.isLead ? "" : "none"; if (!b.classList.contains("mf-btn")) b.setAttribute("href", "/library"); });
+
+  // side panels
+  const byStyle: Record<string, number> = {}, keys: Record<string, number> = {};
+  lib.songs.forEach((s) => { const k = styleKey(s.style); byStyle[k] = (byStyle[k] ?? 0) + 1; keys[s.originalKey] = (keys[s.originalKey] ?? 0) + 1; });
+  const total = Math.max(lib.songs.length, 1);
+  repeat(root, ".style-row", Object.entries(byStyle).sort((a, b) => b[1] - a[1]), (el, [k, n]) => {
+    text(el, ".style-name", STYLE[k].label); text(el, ".sbar-ct", String(n));
+    const bar = q(el, ".sbar-fill"); if (bar) { bar.style.width = Math.round((n / total) * 100) + "%"; bar.style.background = STYLE[k].bar; }
+  });
+  repeat(root, ".key-pill", Object.entries(keys).sort((a, b) => b[1] - a[1]).slice(0, 10), (el, [k], ) => { el.textContent = k; el.classList.toggle("hot", (keys[k] ?? 0) >= 2); });
+  repeat(root, ".rset-item", [...lib.setlists].reverse().slice(0, 5), (el, sl) => {
+    text(el, ".rsi-date", date(sl.serviceDate).toLocaleDateString("en", { month: "short", day: "2-digit" }).toUpperCase());
+    text(el, ".rsi-name", sl.serviceTitle); text(el, ".rsi-ct", String(sl.entries.length));
+  });
+
+  const render = () => {
+    let rows = lib.songs.filter((s) => {
+      const t = L.q.toLowerCase();
+      return (!t || `${s.title} ${s.artist ?? ""} ${s.originalKey}`.toLowerCase().includes(t)) &&
+        (!L.style || styleKey(s.style) === L.style) && (!L.key || s.originalKey === L.key.replace("♭", "b").replace("♯", "#"));
+    });
+    const cmp: Record<string, (a: Song, b: Song) => number> = {
+      alpha: (a, b) => a.title.localeCompare(b.title), key: (a, b) => a.originalKey.localeCompare(b.originalKey),
+      sets: (a, b) => usedIn(lib, b.id) - usedIn(lib, a.id),
+    };
+    rows = L.sort === "recent" ? [...rows].reverse() : [...rows].sort(cmp[L.sort]);
+    const pages = Math.max(1, Math.ceil(rows.length / PER));
+    L.page = Math.min(L.page, pages);
+    g("visible-count").textContent = String(rows.length);
+    g("card-grid").innerHTML = rows.length ? rows.slice((L.page - 1) * PER, L.page * PER).map((s) => {
+      const m = STYLE[styleKey(s.style)], n = usedIn(lib, s.id);
+      const dots = Array.from({ length: Math.min(n, 10) }, (_, i) => `<div class="use-dot${i < 5 ? " lit" : ""}"></div>`).join("");
+      return `<div class="song-card" data-id="${s.id}" role="button" tabindex="0"><div class="card-stripe ${m.stripe}"></div><div class="card-glow"></div>
+        <div class="card-body"><div class="card-key-badge">${esc(s.originalKey)}</div><div class="card-song-name">${esc(s.title)}</div><div class="card-artist">${esc(s.artist ?? "")}</div>
+        <div class="card-tags"><span class="ctag ${m.cls}">${m.label}</span>${s.bpm ? `<span class="ctag ctag-bpm">${s.bpm} BPM</span>` : ""}</div>
+        <div class="card-stats"><div class="cstat"><div class="cstat-val">${String(n).padStart(2, "0")}</div><div class="cstat-label">Sets used</div></div><div class="cstat"><div class="use-dots">${dots}</div><div class="cstat-label">Frequency</div></div></div></div>
+        <div class="card-footer"><button class="cfoot-btn" data-act="open">♩ Chords</button><button class="cfoot-btn" data-act="set">+ Set List</button><button class="cfoot-btn primary-action" data-act="view">View →</button></div></div>`;
+    }).join("") : `<div class="empty-state"><div class="es-icon">♩</div><div class="es-title">No songs found</div><div class="es-sub">Try adjusting your search or filters.</div></div>`;
+    const btn = (n: number, label: string, cls = "", off = false) => `<button class="page-btn${cls}" data-page="${n}"${off ? ' disabled style="opacity:.3"' : ""}>${label}</button>`;
+    g("pagination").innerHTML = pages < 2 ? "" : btn(L.page - 1, "‹", "", L.page === 1) +
+      Array.from({ length: pages }, (_, i) => i + 1).filter((i) => i === 1 || i === pages || Math.abs(i - L.page) <= 1).map((i) => btn(i, String(i), i === L.page ? " active" : "")).join("") + btn(L.page + 1, "›", "", L.page === pages);
+
+    const song = L.open ? lib.getSongById(L.open) : undefined;
+    g("song-modal").classList.toggle("open", !!song);
+    document.body.style.overflow = song ? "hidden" : "";
+    if (song) {
+      const m = STYLE[styleKey(song.style)], chip = (bg: string, c: string, t: string) => `<span class="mchip" style="background:${bg};color:${c};">${t}</span>`, dim = "rgba(192,192,192,.06)";
+      g("modal-title").textContent = song.title; g("modal-artist").textContent = song.artist ?? "";
+      g("modal-stripe").className = "modal-stripe " + m.stripe;
+      g("modal-chips").innerHTML = chip("var(--accent-lo)", "var(--accent)", `Key of ${esc(song.originalKey)}`) + chip(m.chip, m.text, m.label) +
+        (song.bpm ? chip(dim, "var(--muted2)", `${song.bpm} BPM`) : "") + chip(dim, "var(--muted2)", `Used in ${usedIn(lib, song.id)} sets`);
+      g("modal-chords").innerHTML = song.loaded === false ? "Loading chart…" :
+        (auth.signedIn ? song.sections : song.sections.slice(0, 1)).map((sec) => `<span class="cp-section">[${esc(sec.label ?? sec.kind)}]</span>\n` +
+          sec.lines.map((l) => (l.chords.length ? chordRow(l, f) + "\n" : "") + esc(l.lyric)).join("\n")).join("\n\n");
+      const full = q(root, '#song-modal a[href^="/ui/song-detail"]'); full?.setAttribute("href", `/ui/song-detail?song=${song.id}`);
+      lib.ensureChart(song.id);
+    }
+  };
+
+  const search = g<HTMLInputElement>("search-input"), sort = g<HTMLSelectElement>("sort-select");
+  search.value = L.q; sort.value = L.sort; g<HTMLSelectElement>("style-filter").value = L.style; g<HTMLSelectElement>("key-filter").value = L.key;
+  const chipFor: Record<string, string> = { all: "alpha", used: "sets", recent: "recent" };
+  const chips = () => root.querySelectorAll<HTMLElement>(".fchip").forEach((c) => c.classList.toggle("active", chipFor[c.id.replace("chip-", "")] === L.sort));
+  const upd = (fn: () => void) => () => { fn(); L.page = 1; chips(); render(); };
+  on(search, "input", upd(() => (L.q = search.value)), signal);
+  on(sort, "change", upd(() => (L.sort = sort.value)), signal);
+  on(g("style-filter"), "change", upd(() => (L.style = g<HTMLSelectElement>("style-filter").value)), signal);
+  on(g("key-filter"), "change", upd(() => (L.key = g<HTMLSelectElement>("key-filter").value)), signal);
+  root.querySelectorAll<HTMLElement>(".fchip").forEach((c) => on(c, "click", upd(() => { L.sort = chipFor[c.id.replace("chip-", "")]; sort.value = L.sort; }), signal));
+  on(g("card-grid"), "click", (e) => {
+    const t = e.target as HTMLElement, card = t.closest<HTMLElement>(".song-card"), act = t.closest<HTMLElement>("[data-act]")?.dataset.act;
+    if (!card) return;
+    if (act === "set") nav("/setlists"); else if (act === "view") nav(`/ui/song-detail?song=${card.dataset.id}`); else { L.open = card.dataset.id!; render(); }
+  }, signal);
+  on(g("card-grid"), "keydown", (e) => { const k = e as KeyboardEvent, c = (k.target as HTMLElement).closest<HTMLElement>(".song-card"); if (k.key === "Enter" && c) { L.open = c.dataset.id!; render(); } }, signal);
+  on(g("pagination"), "click", (e) => { const b = (e.target as HTMLElement).closest<HTMLElement>("[data-page]"); if (b) { L.page = Number(b.dataset.page); render(); root.querySelector(".page-body")?.scrollIntoView({ behavior: "smooth" }); } }, signal);
+  const close = () => { L.open = null; render(); };
+  on(q(root, ".modal-close"), "click", close, signal);
+  on(q(root, "#song-modal .mf-btn.ghost"), "click", close, signal);
+  on(g("song-modal"), "click", (e) => { if (e.target === g("song-modal")) close(); }, signal);
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && L.open) close(); }, { signal });
+  signal.addEventListener("abort", () => { document.body.style.overflow = ""; });
+  chips(); render();
+};
+
+// ---------- song detail (/ui/song-detail?song=ID) ----------
+const D = { id: "", shift: 0, size: 13 };
+
+const songDetail: Wire = (root, { auth, lib, nav }, signal) => {
+  const id = new URLSearchParams(window.location.search).get("song") ?? lib.songs[0]?.id;
+  const song = id ? lib.getSongById(id) : undefined;
+  if (!song) { text(root, ".hero-title", lib.songs.length ? "Song not found" : "Loading…"); return; }
+  if (D.id !== song.id) { D.id = song.id; D.shift = 0; }
+  lib.ensureChart(song.id);
+
+  const paint = () => {
+  const steps = (semitoneDiff(song.originalKey, song.originalKey) + D.shift + 120) % 12;
+  const key = spell(song.originalKey, steps), show = (c: string) => transposeChord(c, steps, key.flat);
+  text(root, ".hero-title", song.title); text(root, ".hero-artist", song.artist ?? "");
+  text(root, ".hero-eyebrow", `${auth.team?.name ?? "Hallowly"} · Song Library`);
+  text(root, ".hc-key", `Key of ${key.name}`); text(root, ".hc-style", STYLE[styleKey(song.style)].label);
+  text(root, ".hc-bpm", song.bpm ? `${song.bpm} BPM` : "—"); q(root, ".hc-lang")?.remove();
+  const hs = root.querySelectorAll<HTMLElement>(".hs-item");
+  text(hs[0], ".hs-val", String(usedIn(lib, song.id))); text(hs[1], ".hs-val", song.originalKey); if (hs[2]) hs[2].style.display = "none";
+  text(root, "#ct-key", key.name); text(root, "#ct-fs", String(D.size));
+  const edit = q(root, "#btn-hero-edit"); if (edit) edit.style.display = auth.isLead ? "" : "none";
+
+  const disp = q(root, "#chord-display")!;
+  disp.style.fontSize = D.size + "px";
+  const secs = auth.signedIn ? song.sections : song.sections.slice(0, 1);
+  disp.innerHTML = song.loaded === false ? '<span class="cd-section">Loading chart…</span>' :
+    secs.map((s) => `<span class="cd-section">[${esc(s.label ?? s.kind)}]</span>` + s.lines.map((l) =>
+      (l.chords.length ? `<span class="cd-chords">${esc(chordRow(l, show))}</span>` : "") + (l.lyric ? `<span class="cd-lyrics">${esc(l.lyric)}</span>` : "")).join("") + '<span class="cd-blank"></span>').join("") +
+    (auth.signedIn ? "" : '<span class="cd-section">// Sign in to view the full chord sheet</span>');
+
+  };
+  paint();
+
+  const btns = root.querySelectorAll<HTMLElement>(".ct-btn"), actions = root.querySelectorAll<HTMLElement>(".hero-actions .btn");
+  const bump = (fn: () => void) => () => { fn(); paint(); };
+  on(btns[0], "click", bump(() => D.shift--), signal); on(btns[1], "click", bump(() => D.shift++), signal);
+  on(btns[2], "click", bump(() => (D.size = Math.max(10, D.size - 1))), signal); on(btns[3], "click", bump(() => (D.size = Math.min(24, D.size + 1))), signal);
+  on(actions[1], "click", () => window.print(), signal);
+  on(actions[2], "click", () => nav("/setlists"), signal);
+  on(q(root, ".eb-link"), "click", () => nav("/library"), signal);
+};
+
+export const wire: Record<string, Wire> = { login, dashboard, library, "song-detail": songDetail };
