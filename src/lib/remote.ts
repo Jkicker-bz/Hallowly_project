@@ -31,12 +31,13 @@ async function table(name: string, cols = "*"): Promise<Row[]> {
 
 export async function fetchAll(): Promise<{ songs: Song[]; setlists: Setlist[]; members: TeamMember[] }> {
   if (!supabase) throw new Error("Backend not configured");
-  const [songRows, leads, lists, listSongs, listLeads] = await Promise.all([
+  const [songRows, leads, lists, listSongs, listLeads, songLeads] = await Promise.all([
     table("songs", "id,title,artist,style,key,bpm,active"),
     table("leads", "id,initials,full_name,role,avatar_color,active"), // never request email
     table("lists", "id,name,date,event_type,list_key,note,active"),
     table("list_songs"),
     table("list_leads", "list_id,lead_id"),
+    table("song_leads", "song_id,lead_id,role"),
   ]);
 
   const songs: Song[] = songRows
@@ -44,6 +45,7 @@ export async function fetchAll(): Promise<{ songs: Song[]; setlists: Setlist[]; 
     .map((s) => ({
       id: s.id, title: s.title, artist: s.artist, style: s.style ?? undefined,
       originalKey: s.key || "C", bpm: s.bpm ?? undefined, sections: [], loaded: false,
+      leads: songLeads.filter((x) => x.song_id === s.id).map((x) => ({ leadId: x.lead_id, role: x.role })),
     }));
 
   const known = new Set(songs.map((s) => s.id));

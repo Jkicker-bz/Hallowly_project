@@ -333,7 +333,7 @@ const setlists: Wire = (root, { auth, lib, nav }, signal) => {
     root.querySelectorAll<HTMLElement>(".ds-card").forEach((c) => { if (/activity/i.test(q(c, ".ds-header")?.textContent ?? "")) c.style.display = "none"; });
     const act = root.querySelectorAll<HTMLElement>(".topbar-actions .btn-xs");
     on(act[0], "click", () => window.print(), signal);
-    if (act[1]) act[1].style.display = "none";
+    if (act[1]) { act[1].textContent = "Share"; act[1].style.display = sl ? "" : "none"; on(act[1], "click", () => sl && nav(`/s/${sl.id}`), signal); }
     if (act[2]) { act[2].style.display = auth.isLead ? "" : "none"; on(act[2], "click", () => nav("/manage/setlists"), signal); }
   };
   paint();
@@ -499,4 +499,87 @@ const chordEditor: Wire = (root, { auth, lib, nav, backend }, signal) => {
   });
 };
 
-export const wire: Record<string, Wire> = { "add-song": addSong, "chord-editor": chordEditor, "create-setlist": createSetlist, team, login, dashboard, library, "song-detail": songDetail, setlists };
+// ---------- shareable public set list (/s/:id) ----------
+const setlistPublic: Wire = (root, { lib, auth, nav }, signal) => {
+  const sl = lib.getSetlistById(window.location.pathname.split("/")[2] ?? "");
+  if (!sl) { text(root, ".hero-title", lib.setlists.length ? "Set list not found" : "Loading…"); return; }
+  const org = auth.team?.name ?? "Hallowly";
+  root.querySelectorAll(".oc-name, .nav-org-name").forEach((e) => (e.textContent = org));
+  text(root, ".event-badge", sl.eventType ?? "Service"); text(root, ".hero-title", sl.serviceTitle);
+  const hd = q(root, ".hero-date");
+  if (hd) hd.innerHTML = `<span>${date(sl.serviceDate).toLocaleDateString("en", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}</span>`;
+  const keyOf = (e: (typeof sl.entries)[number]) => e.keyOverride ?? sl.listKey ?? lib.getSongById(e.songId)?.originalKey ?? "";
+  const hm = root.querySelectorAll<HTMLElement>(".hm-item");
+  text(hm[0], ".hm-value", String(sl.entries.length)); if (hm[1]) hm[1].style.display = "none";
+  text(hm[2], ".hm-value", [...new Set(sl.entries.map(keyOf).filter(Boolean))].slice(0, 3).join(" · ") || "—");
+  text(hm[3], ".hm-value", String(sl.crew?.length ?? 0));
+
+  const list = q(root, ".setlist");
+  if (list) {
+    list.innerHTML = sl.entries.map((e, i) => {
+      const s = lib.getSongById(e.songId); if (!s) return "";
+      const sep = i > 0 && e.section && e.section !== sl.entries[i - 1].section ? `<div class="sl-sep"><div class="sl-sep-line"></div><span class="sl-sep-label">${esc(e.section)}</span><div class="sl-sep-line"></div></div>` : "";
+      return `${sep}<div class="sl-song" data-id="${s.id}" style="cursor:pointer"><span class="sl-num">${String(i + 1).padStart(2, "0")}</span><div class="sl-info"><div class="sl-name">${esc(s.title)}</div><div class="sl-artist">${esc(s.artist ?? "")}</div></div><span class="sl-key">${esc(keyOf(e))}</span></div>`;
+    }).join("");
+    on(list, "click", (e) => { const id = (e.target as HTMLElement).closest<HTMLElement>(".sl-song")?.dataset.id; if (id) nav(`/song/${id}`); }, signal);
+  }
+  repeat(root, ".tm", sl.crew ?? [], (el, c) => {
+    const n = lib.members.find((m) => m.id === c.memberId)?.name ?? "";
+    text(el, ".tm-av", initials(n)); text(el, ".tm-name", n.split(" ")[0]);
+    const av = q(el, ".tm-av"); av?.classList.remove("tm-off"); av?.classList.add("tm-on");
+  });
+  root.querySelectorAll<HTMLElement>(".panel").forEach((p) => { if (/key reference/i.test(q(p, ".panel-hd")?.textContent ?? "")) p.style.display = "none"; });
+  text(root, ".sb-url", `${window.location.host}/s/${sl.id}`);
+  const copy = (b: Element) => on(b, "click", () => { navigator.clipboard?.writeText(window.location.href); b.textContent = "Copied ✓"; }, signal);
+  root.querySelectorAll(".sb-copy, .nav-actions .btn.ghost:first-child").forEach(copy);
+  root.querySelectorAll(".sb-print, .nav-actions .btn.ghost:nth-child(2)").forEach((b) => on(b, "click", () => window.print(), signal));
+  const signin = q(root, ".nav-actions a.btn.primary"); if (signin && auth.signedIn) { signin.textContent = "Dashboard"; signin.setAttribute("href", "/dashboard"); }
+};
+
+// ---------- member dashboard (/member) ----------
+const member: Wire = (root, { auth, lib, nav }, signal) => {
+  const name = auth.user?.name ?? "Friend", first = name.split(" ")[0];
+  const me = lib.members.find((m) => m.name === name);
+  const today = new Date().toISOString().slice(0, 10);
+  const next = lib.setlists.find((s) => s.serviceDate >= today) ?? lib.setlists[lib.setlists.length - 1];
+  const songsNext = (next?.entries ?? []).map((e) => lib.getSongById(e.songId)).filter((s): s is Song => !!s);
+  const mine = me ? lib.songs.filter((s) => s.leads?.some((l) => l.leadId === me.id)) : [];
+  const isMine = (id: string) => mine.some((s) => s.id === id);
+  const roleOf = (s: Song) => s.leads?.find((l) => l.leadId === me?.id)?.role ?? "";
+
+  text(root, ".nav-org-name", auth.team?.name ?? "Hallowly"); text(root, ".nmc-name", name); text(root, ".nmc-avatar", initials(name));
+  text(root, ".nmc-role", me?.instrument ?? (auth.isLead ? "Lead" : "Member"));
+  const h = new Date().getHours();
+  const greet = q(root, ".hero-greeting"); if (greet) greet.innerHTML = `${h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening"},<br/><em>${esc(first)}.</em>`;
+  const days = next ? Math.round((date(next.serviceDate).getTime() - date(today).getTime()) / 864e5) : 0;
+  const sub = q(root, ".hero-sub");
+  if (sub) sub.innerHTML = !next ? "No service is planned yet." : `You have <strong style="color:var(--vapor);">${songsNext.length} songs</strong> in the next set. ${days > 0 ? `It's ${days} ${days === 1 ? "day" : "days"} away.` : "That's today."}`;
+  if (next) {
+    const d = date(next.serviceDate);
+    text(root, ".nc-date", `${d.toLocaleDateString("en", { weekday: "short" }).toUpperCase()}, ${d.toLocaleDateString("en", { month: "short" }).toUpperCase()} ${d.getDate()}`);
+    text(root, ".nc-time", next.eventType ?? next.serviceTitle);
+    const lead = songsNext.filter((s) => isMine(s.id));
+    const nc = q(root, ".nc-songs"); if (nc) nc.innerHTML = lead.length ? `You're on <strong>${lead.map((s) => esc(s.title)).join("</strong>, <strong>")}</strong>.` : "No songs are assigned to you in this set.";
+    on(q(root, ".nc-link"), "click", () => q(root, "#set-section")?.scrollIntoView({ behavior: "smooth" }), signal);
+  }
+  text(root, ".card-eyebrow", `${mine.length} Assigned`);
+  const inSet = new Set(songsNext.map((s) => s.id));
+  repeat(root, ".my-song-row", [...mine].sort((a, b) => Number(inSet.has(b.id)) - Number(inSet.has(a.id))).slice(0, 8), (el, s) => {
+    text(el, ".msr-num", String(mine.indexOf(s) + 1).padStart(2, "0")); text(el, ".msr-name", s.title); text(el, ".msr-artist", s.artist ?? ""); text(el, ".msr-key", s.originalKey);
+    const r = q(el, ".msr-my-role"); if (r) { r.textContent = roleOf(s) || "Team"; r.className = "msr-my-role " + (/back/i.test(roleOf(s)) ? "role-backup" : "role-lead"); }
+    on(q(el, ".chord-btn"), "click", () => nav(`/song/${s.id}`), signal);
+  });
+  if (next) {
+    const d = date(next.serviceDate);
+    text(root, "#set-section .card-title", `${d.toLocaleDateString("en", { month: "short" }).toUpperCase()} ${d.getDate()} · ${next.serviceTitle}`);
+    repeat(root, ".set-song-row", next.entries, (el, e) => {
+      const s = lib.getSongById(e.songId); if (!s) return;
+      text(el, ".ssr-order", String(next.entries.indexOf(e) + 1).padStart(2, "0")); text(el, ".ssr-name", s.title); text(el, ".ssr-key", e.keyOverride ?? next.listKey ?? s.originalKey);
+      const m = q(el, ".ssr-mine"); if (m) m.style.display = isMine(s.id) ? "" : "none";
+      on(el, "click", () => nav(`/setlists/${next.id}/perform/${s.id}`), signal);
+    });
+  }
+  q(root, ".prep-row")?.closest<HTMLElement>(".card")?.style.setProperty("display", "none");
+};
+
+export const wire: Record<string, Wire> = { "setlist-public": setlistPublic, member, "add-song": addSong, "chord-editor": chordEditor, "create-setlist": createSetlist, team, login, dashboard, library, "song-detail": songDetail, setlists };
