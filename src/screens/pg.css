@@ -4,3 +4,9 @@
 .pg ::selection { background: rgba(155, 89, 182, .35); }
 .pg a:focus-visible, .pg button:focus-visible, .pg input:focus-visible, .pg select:focus-visible, .pg textarea:focus-visible { outline: 2px solid #9B59B6; outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) { .pg *, .pg *::before, .pg *::after { animation: none !important; transition: none !important; } }
+
+.pg { overflow-x: clip; }
+/* Personal Hallow accent (Settings) applies to every designed screen. */
+html[data-accent="lumen"] .pg.pg { --accent: #E67E22; --accent-lo: rgba(230,126,34,.12); --accent-glow: rgba(230,126,34,.22); --border-focus: rgba(230,126,34,.5); }
+html[data-accent="bronze"] .pg.pg { --accent: #A0815E; --accent-lo: rgba(160,129,94,.12); --accent-glow: rgba(160,129,94,.22); --border-focus: rgba(160,129,94,.5); }
+html[data-accent="flow"] .pg.pg { --accent: #1ABC9C; --accent-lo: rgba(26,188,156,.12); --accent-glow: rgba(26,188,156,.22); --border-focus: rgba(26,188,156,.5); }

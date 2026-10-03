@@ -13,6 +13,8 @@ interface AuthContextValue {
   signInWithEmail: (email: string) => Promise<string | null>;
   /** Finish sign-in with the code from the email (works across apps/devices). */
   verifyCode: (email: string, code: string) => Promise<string | null>;
+  /** null = allowed; otherwise a human-readable reason (checked live against Supabase, not cached state). */
+  ensureLead: () => Promise<string | null>;
   signInWithPassword: (email: string, password: string) => Promise<string | null>;
   resetPassword: (email: string) => Promise<string | null>;
   /** Demo-only role switch (hidden when a backend is connected). */
@@ -71,6 +73,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!supabase) return "Backend not configured.";
       const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/` });
       return error ? error.message : null;
+    },
+    ensureLead: async () => {
+      if (!supabase) return null;
+      const { data: s } = await supabase.auth.getSession();
+      if (!s.session) return "Please sign in first.";
+      const { data } = await supabase.rpc("is_lead");
+      return data === true ? null : `You're signed in as ${s.session.user.email}, but that email isn't a Lead in your leads table (role "Lead", active).`;
     },
     signInAs: (role) => setUser(demo(role)),
     signOut: () => { supabase?.auth.signOut(); setUser(isBackendConfigured ? null : demo("lead")); },

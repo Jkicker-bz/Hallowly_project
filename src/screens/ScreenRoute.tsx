@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { useTheme } from "../context/ThemeContext";
 import { useLibrary } from "../context/LibraryContext";
 import { isBackendConfigured } from "../lib/supabase";
 import { Screen } from "./Screen";
@@ -19,6 +20,7 @@ export function ScreenRoute({ name: fixed }: { name?: string }) {
   const auth = useAuth();
   const lib = useLibrary();
   const nav = useNavigate();
+  const theme = useTheme();
 
   useEffect(() => {
     setMarkup(null);
@@ -32,5 +34,5 @@ export function ScreenRoute({ name: fixed }: { name?: string }) {
 
   if (markup === null || (wire[name] && lib.status === "loading")) return <div role="status" style={{ padding: 24, color: "#777670" }}>Loading…</div>;
   const w = wire[name];
-  return <Screen cls={`pg-${name}`} html={markup} hydrate={w && ((root, signal) => w(root, { auth, lib, nav, backend: isBackendConfigured }, signal))} />;
+  return <Screen cls={`pg-${name}`} html={markup} hydrate={w && ((root, signal) => w(root, { auth, lib, nav, theme, backend: isBackendConfigured }, signal))} />;
 }

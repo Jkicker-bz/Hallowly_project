@@ -66,6 +66,7 @@ interface Ctx {
   addSetlist: (i: SetlistInput) => void;
   updateSetlist: (id: string, p: Partial<Pick<Setlist, "note" | "listKey">>) => void;
   setEntrySection: (setlistId: string, songId: string, section: string) => void;
+  replaceSetlist: (id: string, i: SetlistInput) => void;
   deleteSetlist: (id: string) => void;
   addSongToSetlist: (setlistId: string, e: SetlistEntry) => void;
   removeSongFromSetlist: (setlistId: string, songId: string) => void;
@@ -154,6 +155,7 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
       if (isBackendConfigured) pushList(sl).catch(() => setStatus("error"));
     },
     updateSetlist: (id, p) => lists(id, (s) => ({ ...s, ...p })),
+    replaceSetlist: (id, i) => lists(id, (s) => ({ ...s, serviceTitle: i.serviceTitle.trim() || s.serviceTitle, serviceDate: i.serviceDate, eventType: i.eventType ?? s.eventType, entries: i.entries ?? [], crew: i.crew ?? [] })),
     setEntrySection: (id, songId, section) =>
       lists(id, (s) => ({ ...s, entries: s.entries.map((e) => (e.songId === songId ? { ...e, section: section || undefined } : e)) })),
     deleteSetlist: (id) => {

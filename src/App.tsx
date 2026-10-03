@@ -14,6 +14,7 @@ import { SetlistsPage } from "./pages/SetlistsPage";
 import { LibraryPage } from "./pages/LibraryPage";
 import { TeamPage } from "./pages/TeamPage";
 import { SettingsPage } from "./pages/SettingsPage";
+import { SongRoute } from "./pages/SongRoute";
 import { ScreenRoute } from "./screens/ScreenRoute";
 import { PerformPage } from "./pages/PerformPage";
 
@@ -32,7 +33,8 @@ export default function App() {
           <BrowserRouter>
             <Routes>
             <Route path="/" element={<ScreenRoute name="landing" />} />
-            <Route path="/song/:songId" element={<ScreenRoute name="song-detail" />} />
+            <Route path="/song/:songId" element={<SongRoute />} />
+            <Route path="/create-setlist/:setlistId" element={<ScreenRoute name="create-setlist" />} />
             <Route path="/s/:listId" element={<ScreenRoute name="setlist-public" />} />
             <Route path="/chord-editor/:songId" element={<ScreenRoute name="chord-editor" />} />
             <Route path="/setlists/:setlistId/perform/:songId" element={<PerformPage />} />

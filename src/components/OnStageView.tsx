@@ -14,11 +14,12 @@ interface Props {
   onBack?: () => void;
   onPrev?: () => void;
   onNext?: () => void;
+  onEdit?: () => void;
 }
 
 const MODES: [SongViewMode, string][] = [["lyrics", "Lyrics"], ["combined", "Combined"], ["chords", "Chords"]];
 
-export function OnStageView({ song, baseKey, serviceTitle = "Library", position = { current: 1, total: 1 }, onBack, onPrev, onNext }: Props) {
+export function OnStageView({ song, baseKey, serviceTitle = "Library", position = { current: 1, total: 1 }, onBack, onPrev, onNext, onEdit }: Props) {
   const [mode, setMode] = useState<SongViewMode>("combined");
   const [playing, setPlaying] = useState(false);
   const [elapsed, setElapsed] = useState(0);
@@ -61,7 +62,10 @@ export function OnStageView({ song, baseKey, serviceTitle = "Library", position 
           <div className="hw-title">{song.title}</div>
           <div className="hw-subtitle">{serviceTitle.toUpperCase()} · {position.current} OF {position.total}</div>
         </div>
-        <div className="hw-keypill">{key}{capo ? ` c${capo}` : ""}</div>
+        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          {onEdit && <button className="hw-icon-btn" aria-label="Edit chart" onClick={onEdit}>✎</button>}
+          <div className="hw-keypill">{key}{capo ? ` c${capo}` : ""}</div>
+        </div>
       </div>
 
       <div className="hw-setlist-track">

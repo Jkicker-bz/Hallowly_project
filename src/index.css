@@ -4,6 +4,10 @@
   box-sizing: border-box;
 }
 
+html, body {
+  background: #111111;
+}
+
 body {
   margin: 0;
   font-family: "Montserrat", sans-serif;

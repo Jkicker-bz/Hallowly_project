@@ -3,6 +3,7 @@
 import type { NavigateFunction } from "react-router-dom";
 import type { useAuth } from "../context/AuthContext";
 import type { useLibrary } from "../context/LibraryContext";
+import type { useTheme } from "../context/ThemeContext";
 import type { Song } from "../types/song";
 import { semitoneDiff, spell, transposeChord } from "../lib/transpose";
 import { chordRow, parseChordSheet, toChordSheet } from "../lib/chordsheet";
@@ -11,6 +12,7 @@ export interface Deps {
   auth: ReturnType<typeof useAuth>;
   lib: ReturnType<typeof useLibrary>;
   nav: NavigateFunction;
+  theme: ReturnType<typeof useTheme>;
   /** true when a Supabase backend is configured */
   backend: boolean;
 }
@@ -148,6 +150,10 @@ const STYLE: Record<string, { label: string; cls: string; stripe: string; chip: 
 const usedIn = (lib: Deps["lib"], id: string) => lib.setlists.filter((l) => l.entries.some((e) => e.songId === id)).length;
 
 // ---------- library ----------
+const addPath = (lib: Deps["lib"], id: string) => {
+  const up = lib.setlists.find((s) => s.serviceDate >= new Date().toISOString().slice(0, 10));
+  return up ? `/create-setlist/${up.id}?add=${id}` : `/create-setlist?add=${id}`;
+};
 const L = { page: 1, sort: "alpha", q: "", style: "", key: "", open: null as string | null };
 
 const library: Wire = (root, { auth, lib, nav }, signal) => {
@@ -194,7 +200,7 @@ const library: Wire = (root, { auth, lib, nav }, signal) => {
         <div class="card-body"><div class="card-key-badge">${esc(s.originalKey)}</div><div class="card-song-name">${esc(s.title)}</div><div class="card-artist">${esc(s.artist ?? "")}</div>
         <div class="card-tags"><span class="ctag ${m.cls}">${m.label}</span>${s.bpm ? `<span class="ctag ctag-bpm">${s.bpm} BPM</span>` : ""}</div>
         <div class="card-stats"><div class="cstat"><div class="cstat-val">${String(n).padStart(2, "0")}</div><div class="cstat-label">Sets used</div></div><div class="cstat"><div class="use-dots">${dots}</div><div class="cstat-label">Frequency</div></div></div></div>
-        <div class="card-footer"><button class="cfoot-btn" data-act="open">♩ Chords</button><button class="cfoot-btn" data-act="set">+ Set List</button><button class="cfoot-btn primary-action" data-act="view">View →</button></div></div>`;
+        <div class="card-footer"><button class="cfoot-btn" data-act="open">♩ Chords</button>${auth.isLead ? `<button class="cfoot-btn" data-act="set">+ Set List</button>` : ""}<button class="cfoot-btn primary-action" data-act="view">View →</button></div></div>`;
     }).join("") : `<div class="empty-state"><div class="es-icon">♩</div><div class="es-title">No songs found</div><div class="es-sub">Try adjusting your search or filters.</div></div>`;
     const btn = (n: number, label: string, cls = "", off = false) => `<button class="page-btn${cls}" data-page="${n}"${off ? ' disabled style="opacity:.3"' : ""}>${label}</button>`;
     g("pagination").innerHTML = pages < 2 ? "" : btn(L.page - 1, "‹", "", L.page === 1) +
@@ -230,7 +236,7 @@ const library: Wire = (root, { auth, lib, nav }, signal) => {
   on(g("card-grid"), "click", (e) => {
     const t = e.target as HTMLElement, card = t.closest<HTMLElement>(".song-card"), act = t.closest<HTMLElement>("[data-act]")?.dataset.act;
     if (!card) return;
-    if (act === "set") nav("/manage/setlists"); else if (act === "view") nav(`/song/${card.dataset.id}`); else { L.open = card.dataset.id!; render(); }
+    if (act === "set") nav(addPath(lib, card.dataset.id!)); else if (act === "view") nav(`/song/${card.dataset.id}`); else { L.open = card.dataset.id!; render(); }
   }, signal);
   on(g("card-grid"), "keydown", (e) => { const k = e as KeyboardEvent, c = (k.target as HTMLElement).closest<HTMLElement>(".song-card"); if (k.key === "Enter" && c) { L.open = c.dataset.id!; render(); } }, signal);
   on(g("pagination"), "click", (e) => { const b = (e.target as HTMLElement).closest<HTMLElement>("[data-page]"); if (b) { L.page = Number(b.dataset.page); render(); root.querySelector(".page-body")?.scrollIntoView({ behavior: "smooth" }); } }, signal);
@@ -281,7 +287,7 @@ const songDetail: Wire = (root, { auth, lib, nav }, signal) => {
   on(btns[0], "click", bump(() => D.shift--), signal); on(btns[1], "click", bump(() => D.shift++), signal);
   on(btns[2], "click", bump(() => (D.size = Math.max(10, D.size - 1))), signal); on(btns[3], "click", bump(() => (D.size = Math.min(24, D.size + 1))), signal);
   on(actions[1], "click", () => window.print(), signal);
-  on(actions[2], "click", () => nav("/manage/setlists"), signal);
+  on(actions[2], "click", () => nav(addPath(lib, song.id)), signal);
   on(q(root, ".eb-link"), "click", () => nav("/library"), signal);
 };
 
@@ -334,19 +340,33 @@ const setlists: Wire = (root, { auth, lib, nav }, signal) => {
     const act = root.querySelectorAll<HTMLElement>(".topbar-actions .btn-xs");
     on(act[0], "click", () => window.print(), signal);
     if (act[1]) { act[1].textContent = "Share"; act[1].style.display = sl ? "" : "none"; on(act[1], "click", () => sl && nav(`/s/${sl.id}`), signal); }
-    if (act[2]) { act[2].style.display = auth.isLead ? "" : "none"; on(act[2], "click", () => nav("/manage/setlists"), signal); }
+    if (act[2]) { act[2].style.display = auth.isLead ? "" : "none"; on(act[2], "click", () => sl && nav(`/create-setlist/${sl.id}`), signal); }
   };
   paint();
 };
 
 // ---------- create set list ----------
-const CS = { picked: [] as { id: string; key: string }[], style: "all", q: "", crew: new Set<string>(), empty: "" };
+const CS = { picked: [] as { id: string; key: string }[], style: "all", q: "", crew: new Set<string>(), empty: "", loaded: "", added: "" };
 
-const createSetlist: Wire = (root, { auth, lib, nav, backend }, signal) => {
+const createSetlist: Wire = (root, { auth, lib, nav }, signal) => {
   const g = <T extends HTMLElement>(id: string) => q<T>(root, "#" + id)!;
   text(root, ".panel-eyebrow", `${auth.team?.name ?? "Hallowly"} · ${lib.songs.length} songs`);
   if (!CS.empty) CS.empty = g("order-list").innerHTML;
   q(root, ".order-footer")?.style.setProperty("display", "none");
+
+  // /create-setlist = new set; /create-setlist/:id = edit that set (?add=<song> pre-adds a song)
+  const editId = window.location.pathname.split("/")[2];
+  const editing = editId ? lib.getSetlistById(editId) : undefined;
+  const titleEl = q<HTMLInputElement>(root, '.details-section input[type="text"]')!, dateEl = q<HTMLInputElement>(root, 'input[type="date"]')!;
+  if ((editing?.id ?? "") !== CS.loaded) {
+    CS.loaded = editing?.id ?? ""; CS.added = "";
+    CS.picked = (editing?.entries ?? []).map((e) => ({ id: e.songId, key: e.keyOverride ?? editing!.listKey ?? lib.getSongById(e.songId)?.originalKey ?? "C" }));
+    CS.crew = new Set((editing?.crew ?? []).map((c) => c.memberId));
+    titleEl.value = editing?.serviceTitle ?? ""; dateEl.value = editing?.serviceDate ?? "";
+    if (editing?.eventType) root.querySelectorAll<HTMLElement>(".echip").forEach((c) => c.classList.toggle("active", c.textContent?.trim() === editing.eventType));
+  }
+  const add = new URLSearchParams(window.location.search).get("add"), addSong = add ? lib.getSongById(add) : undefined;
+  if (add && addSong && CS.added !== add) { CS.added = add; if (!CS.picked.some((p) => p.id === add)) CS.picked.push({ id: add, key: addSong.originalKey }); }
 
   const picker = () => {
     const t = CS.q.toLowerCase();
@@ -396,24 +416,31 @@ const createSetlist: Wire = (root, { auth, lib, nav, backend }, signal) => {
   root.querySelectorAll<HTMLElement>(".fchip").forEach((c, i) => on(c, "click", () => { CS.style = styles[i]; root.querySelectorAll(".fchip").forEach((x) => x.classList.toggle("active", x === c)); picker(); }, signal));
   root.querySelectorAll<HTMLElement>(".echip").forEach((c) => on(c, "click", () => root.querySelectorAll(".echip").forEach((x) => x.classList.toggle("active", x === c)), signal));
 
-  const save = () => {
-    const title = q<HTMLInputElement>(root, '.details-section input[type="text"]')!.value.trim(), day = q<HTMLInputElement>(root, 'input[type="date"]')!.value;
-    if (backend && !auth.signedIn) return nav("/login");
-    if (backend && !auth.isLead) return alert("Only worship leads can create set lists.");
+  const tb = root.querySelectorAll<HTMLElement>(".topbar-right .btn");
+  if (editing) { if (tb[0]) tb[0].textContent = "Delete"; if (tb[1]) tb[1].textContent = "Save Changes"; }
+  const done = () => { CS.picked = []; CS.crew = new Set(); CS.loaded = "~"; nav("/setlists"); };
+  const save = async () => {
+    const title = titleEl.value.trim(), day = dateEl.value;
     if (!title || !day) return alert("Add a title and a date first.");
-    lib.addSetlist({
+    const why = await auth.ensureLead(); if (why) return alert(why);
+    const input = {
       serviceTitle: title, serviceDate: day, eventType: q(root, ".echip.active")?.textContent ?? "Other",
       entries: CS.picked.map((p) => ({ songId: p.id, keyOverride: p.key !== lib.getSongById(p.id)?.originalKey ? p.key : undefined })),
       crew: [...CS.crew].map((id) => ({ memberId: id, role: lib.members.find((m) => m.id === id)?.instrument ?? "" })),
-    });
-    CS.picked = []; CS.crew = new Set(); nav("/setlists");
+    };
+    if (editing) lib.replaceSetlist(editing.id, input); else lib.addSetlist(input);
+    done();
   };
-  root.querySelectorAll(".topbar-right .btn").forEach((b) => on(b, "click", save, signal));
+  const del = async () => {
+    const why = await auth.ensureLead(); if (why) return alert(why);
+    if (editing && confirm(`Delete "${editing.serviceTitle}"?`)) { lib.deleteSetlist(editing.id); done(); }
+  };
+  tb.forEach((b, i) => on(b, "click", editing && i === 0 ? del : save, signal));
   picker(); order();
 };
 
 // ---------- team ----------
-const team: Wire = (root, { auth, lib, nav }, signal) => {
+const team: Wire = (root, { auth, lib }) => {
   text(root, ".topbar-sub", `${auth.team?.name ?? "Hallowly"} · ${lib.members.length} members`);
   const cards = root.querySelectorAll<HTMLElement>(".stat-strip .stat-card");
   text(cards[0], ".sc-value", String(lib.members.length)); text(cards[0], ".sc-sub", "On the team");
@@ -424,24 +451,22 @@ const team: Wire = (root, { auth, lib, nav }, signal) => {
     text(el, ".m-avatar", initials(m.name)); text(el, ".m-name", m.name); text(el, ".m-email", m.instrument);
     const rb = q(el, ".role-badge"); if (rb) { rb.textContent = m.instrument; rb.className = "role-badge " + (m.instrument === "Lead" ? "rb-lead" : "rb-vocalist"); }
     text(el, ".status-text", "Active"); text(el, ".joined-date", "—");
-    const ra = q(el, ".row-actions");
-    if (ra) { ra.innerHTML = auth.isLead ? '<button class="row-btn edit">Manage</button>' : ""; on(q(ra, "button"), "click", () => nav("/manage/team"), signal); }
+    const ra = q(el, ".row-actions"); if (ra) ra.innerHTML = "";
   });
 };
 
 // ---------- add song ----------
 const KEYMAP: Record<string, string> = { "C♯": "C#", "E♭": "Eb", "F♯": "F#", "A♭": "Ab", "B♭": "Bb" };
 
-const addSong: Wire = (root, { auth, lib, nav, backend }, signal) => {
+const addSong: Wire = (root, { auth, lib, nav }, signal) => {
   const keys = root.querySelectorAll<HTMLElement>(".key-btn"), chips = root.querySelectorAll<HTMLElement>(".style-chip");
   keys.forEach((k) => on(k, "click", () => keys.forEach((x) => x.classList.toggle("active", x === k)), signal));
   chips.forEach((c) => on(c, "click", () => chips.forEach((x) => x.classList.toggle("active", x === c)), signal));
   const val = (id: string) => q<HTMLInputElement>(root, "#" + id)?.value.trim() ?? "";
-  const save = () => {
-    if (backend && !auth.signedIn) return nav("/login");
-    if (backend && !auth.isLead) return alert("Only worship leads can add songs.");
+  const save = async () => {
     const key = q(root, ".key-btn.active")?.textContent ?? "", style = q(root, ".style-chip.active")?.textContent ?? "";
     if (!val("song-title") || !val("song-artist") || !key) return alert("Add a title, an artist and the original key.");
+    const why = await auth.ensureLead(); if (why) return alert(why);
     const id = lib.addSong({
       title: val("song-title"), artist: val("song-artist"), originalKey: KEYMAP[key] ?? key, bpm: val("song-bpm") ? Number(val("song-bpm")) : undefined,
       style: style.startsWith("Latin") ? "Latin" : style || undefined, body: "", sheet: q<HTMLTextAreaElement>(root, "#chord-sheet")?.value ?? "",
@@ -454,7 +479,7 @@ const addSong: Wire = (root, { auth, lib, nav, backend }, signal) => {
 // ---------- chord editor (/chord-editor/:songId) ----------
 const CE = { id: "", size: 13 };
 
-const chordEditor: Wire = (root, { auth, lib, nav, backend }, signal) => {
+const chordEditor: Wire = (root, { auth, lib, nav }, signal) => {
   const id = window.location.pathname.split("/")[2];
   const song = id ? lib.getSongById(id) : undefined;
   const ta = q<HTMLTextAreaElement>(root, "#chord-editor")!, title = q<HTMLInputElement>(root, "#song-title-input")!;
@@ -487,8 +512,8 @@ const chordEditor: Wire = (root, { auth, lib, nav, backend }, signal) => {
   on(fs[0], "click", size(-1), signal); on(fs[1], "click", size(1), signal);
   const act = root.querySelectorAll<HTMLElement>(".topbar-actions .btn");
   on(act[0], "click", () => window.print(), signal);
-  const save = () => {
-    if (backend && !auth.isLead) return alert("Only worship leads can edit charts.");
+  const save = async () => {
+    const why = await auth.ensureLead(); if (why) return alert(why);
     lib.updateSong(song.id, { title: title.value.trim() || song.title, originalKey: song.originalKey, bpm: song.bpm, body: "", sheet: ta.value });
     nav(`/song/${song.id}`);
   };
@@ -582,4 +607,16 @@ const member: Wire = (root, { auth, lib, nav }, signal) => {
   q(root, ".prep-row")?.closest<HTMLElement>(".card")?.style.setProperty("display", "none");
 };
 
-export const wire: Record<string, Wire> = { "setlist-public": setlistPublic, member, "add-song": addSong, "chord-editor": chordEditor, "create-setlist": createSetlist, team, login, dashboard, library, "song-detail": songDetail, setlists };
+// ---------- settings ----------
+const settings: Wire = (root, { auth, theme, nav }, signal) => {
+  text(root, ".ae-avatar", initials(auth.user?.name ?? "Guest"));
+  const accents = ["amethyst", "lumen", "bronze", "flow"] as const;
+  root.querySelectorAll<HTMLElement>(".accent-card").forEach((c, i) => {
+    c.classList.toggle("selected", accents[i] === theme.accent);
+    on(c, "click", () => theme.setAccent(accents[i]), signal);
+  });
+  const out = q(root, '.sn-item[style*="error"]');
+  if (out) { out.textContent = "Sign out"; out.style.cursor = "pointer"; on(out, "click", () => { auth.signOut(); nav("/login"); }, signal); }
+};
+
+export const wire: Record<string, Wire> = { settings, "setlist-public": setlistPublic, member, "add-song": addSong, "chord-editor": chordEditor, "create-setlist": createSetlist, team, login, dashboard, library, "song-detail": songDetail, setlists };
