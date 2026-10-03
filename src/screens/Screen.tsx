@@ -10,7 +10,7 @@ export function Screen({ cls, html, hydrate }: { cls: string; html: string; hydr
   useEffect(() => {
     if (!hydrate || !ref.current) return;
     const ac = new AbortController();
-    hydrate(ref.current, ac.signal);
+    try { hydrate(ref.current, ac.signal); } catch (e) { console.error("Screen wiring failed", e); }
     return () => ac.abort();
   });
   return (

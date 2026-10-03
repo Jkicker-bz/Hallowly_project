@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
 import { useLibrary } from "../context/LibraryContext";
 import { isBackendConfigured } from "../lib/supabase";
+import { ErrorBoundary } from "./ErrorBoundary";
 import { Screen } from "./Screen";
 import { wire } from "./wire";
 
@@ -16,15 +17,17 @@ export function ScreenRoute({ name: fixed }: { name?: string }) {
   const params = useParams();
   const wanted = fixed ?? params.name ?? "";
   const name = html[`./html/${wanted}.html`] ? wanted : "404";
-  const [markup, setMarkup] = useState<string | null>(null);
+  // Markup is stored with the screen it belongs to, so a navigation never briefly pairs one screen's wiring with another's HTML.
+  const [loaded, setLoaded] = useState<{ name: string; html: string } | null>(null);
   const auth = useAuth();
   const lib = useLibrary();
   const nav = useNavigate();
   const theme = useTheme();
 
   useEffect(() => {
-    setMarkup(null);
-    Promise.all([html[`./html/${name}.html`](), css[`./css/${name}.css`]()]).then(([m]) => setMarkup(m as string));
+    let live = true;
+    Promise.all([html[`./html/${name}.html`](), css[`./css/${name}.css`]()]).then(([m]) => { if (live) setLoaded({ name, html: m as string }); });
+    return () => { live = false; };
   }, [name]);
 
   useEffect(() => { // warm the most-used screens while idle
@@ -32,7 +35,9 @@ export function ScreenRoute({ name: fixed }: { name?: string }) {
     idle(() => ["dashboard", "library", "setlists", "song-detail"].forEach((n) => { html[`./html/${n}.html`]?.(); css[`./css/${n}.css`]?.(); }));
   }, []);
 
-  if (markup === null || (wire[name] && lib.status === "loading")) return <div role="status" style={{ padding: 24, color: "#777670" }}>Loading…</div>;
+  if (wanted === "org-select") return <Navigate to={auth.signedIn ? "/dashboard" : "/login"} replace />; // single church for now
+  if (wanted === "public") return <Navigate to="/library" replace />; // the library is already the public view
+  if (!loaded || loaded.name !== name || (wire[name] && lib.status === "loading")) return <div role="status" style={{ padding: 24, color: "#777670" }}>Loading…</div>;
   const w = wire[name];
-  return <Screen cls={`pg-${name}`} html={markup} hydrate={w && ((root, signal) => w(root, { auth, lib, nav, theme, backend: isBackendConfigured }, signal))} />;
+  return <ErrorBoundary key={name}><Screen key={name} cls={`pg-${name}`} html={loaded.html} hydrate={w && ((root, signal) => w(root, { auth, lib, nav, theme, backend: isBackendConfigured }, signal))} /></ErrorBoundary>;
 }

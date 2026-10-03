@@ -526,7 +526,9 @@ const chordEditor: Wire = (root, { auth, lib, nav }, signal) => {
 
 // ---------- shareable public set list (/s/:id) ----------
 const setlistPublic: Wire = (root, { lib, auth, nav }, signal) => {
-  const sl = lib.getSetlistById(window.location.pathname.split("/")[2] ?? "");
+  const id = window.location.pathname.split("/")[2];
+  const today = new Date().toISOString().slice(0, 10);
+  const sl = id ? lib.getSetlistById(id) : lib.setlists.find((s) => s.serviceDate >= today) ?? lib.setlists[lib.setlists.length - 1];
   if (!sl) { text(root, ".hero-title", lib.setlists.length ? "Set list not found" : "Loading…"); return; }
   const org = auth.team?.name ?? "Hallowly";
   root.querySelectorAll(".oc-name, .nav-org-name").forEach((e) => (e.textContent = org));
@@ -619,4 +621,49 @@ const settings: Wire = (root, { auth, theme, nav }, signal) => {
   if (out) { out.textContent = "Sign out"; out.style.cursor = "pointer"; on(out, "click", () => { auth.signOut(); nav("/login"); }, signal); }
 };
 
-export const wire: Record<string, Wire> = { settings, "setlist-public": setlistPublic, member, "add-song": addSong, "chord-editor": chordEditor, "create-setlist": createSetlist, team, login, dashboard, library, "song-detail": songDetail, setlists };
+// ---------- singers ----------
+const SG = { id: "", q: "" };
+
+const singers: Wire = (root, { auth, lib, nav }, signal) => {
+  text(root, ".topbar-sub", `${auth.team?.name ?? "Hallowly"} · ${lib.members.length} vocalists & musicians`);
+  root.querySelectorAll<HTMLElement>(".topbar > .btn, .profile-actions").forEach((e) => (e.style.display = "none"));
+  const songsOf = (id: string) => lib.songs.filter((s) => s.leads?.some((l) => l.leadId === id));
+  const roleIn = (s: Song, id: string) => s.leads?.find((l) => l.leadId === id)?.role ?? "";
+  if (!lib.members.some((m) => m.id === SG.id)) SG.id = (lib.members.find((m) => m.name === auth.user?.name) ?? lib.members[0])?.id ?? "";
+  const search = q<HTMLInputElement>(root, ".rp-search-input");
+  if (search && search.value !== SG.q) search.value = SG.q;
+
+  const paint = () => {
+    const m = lib.members.find((x) => x.id === SG.id);
+    const shown = lib.members.filter((x) => `${x.name} ${x.instrument}`.toLowerCase().includes(SG.q.toLowerCase()));
+    repeat(root, ".roster-item", shown, (el, s) => {
+      text(el, ".ri-avatar", initials(s.name)); text(el, ".ri-name", s.name); text(el, ".ri-role", s.instrument); text(el, ".ri-songs", String(songsOf(s.id).length));
+      el.classList.toggle("active", s.id === SG.id);
+      on(el, "click", () => { SG.id = s.id; paint(); }, signal);
+    });
+    if (!m) return;
+    const mine = songsOf(m.id), lead = mine.filter((s) => /lead/i.test(roleIn(s, m.id)));
+    text(root, "#dp-avatar", initials(m.name)); text(root, "#dp-name", m.name); text(root, "#dp-badge", m.instrument); q(root, "#dp-email")?.style.setProperty("display", "none");
+    const st = root.querySelectorAll<HTMLElement>(".stat-mini");
+    text(st[0], ".sm-value", String(mine.length));
+    text(st[1], ".sm-value", String(lib.setlists.filter((l) => l.crew?.some((c) => c.memberId === m.id)).length));
+    text(st[2], ".sm-value", String(lead.length));
+    if (st[3]) st[3].style.display = "none";
+    repeat(root, ".as-row", mine.slice(0, 8), (el, s) => {
+      text(el, ".as-name", s.title); text(el, ".as-artist", s.artist ?? ""); text(el, ".as-key", s.originalKey); text(el, ".as-num", String(mine.indexOf(s) + 1).padStart(2, "0"));
+      const r = roleIn(s, m.id), tag = q(el, ".as-role-tag"); if (tag) { tag.textContent = r || "Team"; tag.classList.toggle("as-lead-tag", /lead/i.test(r)); }
+      el.style.cursor = "pointer"; on(el, "click", () => nav(`/song/${s.id}`), signal);
+    });
+    if (mine.length > 8) q(root, ".as-row:not([data-tpl]):last-child")?.insertAdjacentHTML("afterend", `<div class="as-row" style="padding:10px 16px;opacity:.5;font-size:10px;color:var(--muted2);">+ ${mine.length - 8} more songs assigned</div>`);
+    const keys = mine.reduce<Record<string, number>>((a, s) => ((a[s.originalKey] = (a[s.originalKey] ?? 0) + 1), a), {});
+    const top = Object.entries(keys).sort((a, b) => b[1] - a[1]).slice(0, 5), max = top[0]?.[1] ?? 1;
+    repeat(root, ".kc-pill", top, (el, [k, n]) => {
+      text(el, ".kc-key", k); text(el, ".kc-count", `${n}×`);
+      const f = q(el, ".kc-fill"); if (f) f.style.width = Math.round((n / max) * 100) + "%";
+    });
+  };
+  on(search, "input", () => { SG.q = search!.value; paint(); }, signal);
+  paint();
+};
+
+export const wire: Record<string, Wire> = { singers, settings, "setlist-public": setlistPublic, member, "add-song": addSong, "chord-editor": chordEditor, "create-setlist": createSetlist, team, login, dashboard, library, "song-detail": songDetail, setlists };
