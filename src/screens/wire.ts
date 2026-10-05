@@ -128,6 +128,30 @@ const dashboard: Wire = (root, { auth, lib, nav }, signal) => {
     if (cells[4]) cells[4].textContent = String(lib.setlists.filter((l) => l.entries.some((e) => e.songId === s.id)).length);
   });
 
+  text(root, ".topbar-title", isLead ? "Team Lead Dashboard" : "Dashboard");
+  const rc = root.querySelectorAll<HTMLElement>(".right-col > .card");
+  if (rc[2]) rc[2].style.display = "none"; // recent activity: nothing records it yet
+  [rc[0], rc[1]].forEach((c) => { if (c) c.style.display = next ? "" : "none"; });
+  if (next && rc[0] && rc[1]) {
+    const d = date(next.serviceDate), nameOf = (id: string) => lib.members.find((m) => m.id === id)?.name ?? "";
+    text(rc[0], ".card-title", `${d.toLocaleDateString("en", { month: "short" })} ${d.getDate()} · Set Order`);
+    q(rc[0], ".prep-bar-wrap")?.style.setProperty("display", "none");
+    repeat(rc[0], ".builder-song", next.entries.map((e, i) => ({ e, i })), (el, { e, i }) => {
+      const s = lib.getSongById(e.songId); if (!s) return;
+      text(el, ".builder-num", String(i + 1).padStart(2, "0")); text(el, ".builder-song-name", s.title); text(el, ".builder-key", e.keyOverride ?? next.listKey ?? s.originalKey);
+      q(el, ".builder-drag")?.remove(); el.style.cursor = "pointer"; on(el, "click", () => nav(`/setlists/${next.id}/perform/${s.id}`), signal);
+    });
+    on(q(rc[0], ".card-action"), "click", () => nav(`/create-setlist/${next.id}`), signal);
+    text(rc[1], ".card-title", `Team · ${d.toLocaleDateString("en", { weekday: "long" })}`);
+    repeat(rc[1], ".member-bubble", next.crew ?? [], (el, c) => { const n = nameOf(c.memberId); text(el, ".member-avatar", initials(n)); text(el, ".member-name", n.split(" ")[0]); });
+    on(q(rc[1], ".card-action"), "click", () => nav("/team"), signal);
+  }
+  const upParent = q(root, ".setlist-item[data-tpl]")?.parentElement;
+  if (upParent) {
+    let note = q(upParent, "#up-empty");
+    if (!note) { note = document.createElement("p"); note.id = "up-empty"; note.style.cssText = "padding:20px;font-size:12px;color:var(--muted2)"; note.textContent = "Nothing planned yet. Create a set list and it will appear here."; upParent.appendChild(note); }
+    note.style.display = upcoming.length ? "none" : "";
+  }
   const actions = root.querySelectorAll(".card-action");
   on(actions[0], "click", () => nav("/setlists"), signal);
   on(actions[1], "click", () => nav("/library"), signal);
@@ -314,6 +338,17 @@ const setlists: Wire = (root, { auth, lib, nav }, signal) => {
       el.classList.toggle("active", s.id === SL.id);
       on(el, "click", () => { SL.id = s.id; paint(); if (window.matchMedia("(max-width: 899px)").matches) q(root, ".detail-panel")?.scrollIntoView({ behavior: "smooth" }); }, signal);
     });
+    const detail = q(root, ".detail-scroll");
+    let em = q(root, "#sl-empty");
+    if (!em && detail) {
+      em = document.createElement("div"); em.id = "sl-empty"; em.className = "notes-box"; em.style.margin = "24px";
+      em.innerHTML = '<div class="notes-label">No set lists yet</div><p class="notes-text">Plan your first service: pick songs, set keys and choose who is serving.</p><button class="btn primary" style="margin-top:14px">+ New Set List</button>';
+      detail.prepend(em);
+    }
+    if (em) { em.style.display = sl ? "none" : ""; on(q(em, "button"), "click", () => nav("/create-setlist"), signal); }
+    [...(detail?.children ?? [])].forEach((c) => { if (c !== em) (c as HTMLElement).style.display = sl ? "" : "none"; });
+    const nb = q(root, ".notes-box:not(#sl-empty)");
+    if (nb) { nb.style.display = sl?.note ? "" : "none"; text(nb, ".notes-text", sl?.note ?? ""); }
     text(root, ".detail-set-name", sl ? `${sl.serviceTitle} — ${mon(sl.serviceDate)}` : "No set lists yet");
     const pill = q(root, ".status-pill"); if (pill) { pill.textContent = sl?.entries.length ? "Ready" : "Draft"; pill.className = "status-pill " + (sl?.entries.length ? "sp-ready" : "sp-draft"); }
     const v = root.querySelectorAll(".meta-chip-value");
@@ -337,11 +372,13 @@ const setlists: Wire = (root, { auth, lib, nav }, signal) => {
     repeat(root, ".assigned-row", sl?.crew ?? [], (el, c) => {
       const n = nameOf(c.memberId); text(el, ".a-avatar", initials(n)); text(el, ".a-name", n); text(el, ".a-role", c.role);
     });
-    root.querySelectorAll<HTMLElement>(".ds-card").forEach((c) => { if (/activity/i.test(q(c, ".ds-header")?.textContent ?? "")) c.style.display = "none"; });
+    root.querySelectorAll<HTMLElement>(".ds-card").forEach((c) => { if (/activity|preparation/i.test(q(c, ".ds-header")?.textContent ?? "")) c.style.display = "none"; });
     const act = root.querySelectorAll<HTMLElement>(".topbar-actions .btn-xs");
     on(act[0], "click", () => window.print(), signal);
+    if (act[0]) act[0].style.display = sl ? "" : "none";
+    const stat = q(root, ".status-pill"); if (stat) stat.style.display = sl ? "" : "none";
     if (act[1]) { act[1].textContent = "Share"; act[1].style.display = sl ? "" : "none"; on(act[1], "click", () => sl && nav(`/s/${sl.id}`), signal); }
-    if (act[2]) { act[2].style.display = auth.isLead ? "" : "none"; on(act[2], "click", () => sl && nav(`/create-setlist/${sl.id}`), signal); }
+    if (act[2]) { act[2].style.display = auth.isLead && sl ? "" : "none"; on(act[2], "click", () => sl && nav(`/create-setlist/${sl.id}`), signal); }
   };
   paint();
 };

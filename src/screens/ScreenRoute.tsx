@@ -4,12 +4,14 @@ import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
 import { useLibrary } from "../context/LibraryContext";
 import { isBackendConfigured } from "../lib/supabase";
+import { AppFrame } from "../components/AppFrame";
 import { Loader } from "../components/Loader";
 import { ErrorBoundary } from "./ErrorBoundary";
 import { Screen } from "./Screen";
 import { wire } from "./wire";
 
 type Loader = () => Promise<unknown>;
+const FRAMED = new Set(["dashboard", "library", "setlists", "team", "singers", "settings", "add-song", "chord-editor", "create-setlist", "member", "song-detail"]);
 const html = import.meta.glob("./html/*.html", { query: "?raw", import: "default" }) as Record<string, Loader>;
 const css = import.meta.glob("./css/*.css") as Record<string, Loader>;
 
@@ -38,7 +40,10 @@ export function ScreenRoute({ name: fixed }: { name?: string }) {
 
   if (wanted === "org-select") return <Navigate to={auth.signedIn ? "/dashboard" : "/login"} replace />; // single church for now
   if (wanted === "public") return <Navigate to="/library" replace />; // the library is already the public view
-  if (!loaded || loaded.name !== name || (wire[name] && lib.status === "loading")) return <Loader />;
+  const busy = !loaded || loaded.name !== name || (wire[name] && lib.status === "loading");
   const w = wire[name];
-  return <ErrorBoundary key={name}><Screen key={name} cls={`pg-${name}`} html={loaded.html} hydrate={w && ((root, signal) => w(root, { auth, lib, nav, theme, backend: isBackendConfigured }, signal))} /></ErrorBoundary>;
+  const body = busy ? <Loader /> : (
+    <ErrorBoundary key={name}><Screen key={name} cls={`pg-${name}`} html={loaded!.html} hydrate={w && ((root, signal) => w(root, { auth, lib, nav, theme, backend: isBackendConfigured }, signal))} /></ErrorBoundary>
+  );
+  return FRAMED.has(name) ? <AppFrame>{body}</AppFrame> : body;
 }

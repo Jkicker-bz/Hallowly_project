@@ -68,3 +68,41 @@ html[data-accent="flow"] .hw-dialog-actions .primary { background: #1ABC9C; bord
   .pg.pg .modal-bg { align-items: flex-end; padding: 0; }
   .pg.pg .modal { width: 100%; max-width: 100%; max-height: 92dvh; overflow-y: auto; border-radius: 14px 14px 0 0; }
 }
+
+/* ---- app shell: one sidebar for every signed-in screen, in the chord viewer's soft style ---- */
+.shell { --accent: #9B59B6; --accent-lo: rgba(155,89,182,.12); --accent-glow: rgba(155,89,182,.35); display: flex; min-height: 100dvh; background: #111; }
+html[data-accent="lumen"] .shell { --accent: #E67E22; --accent-lo: rgba(230,126,34,.12); --accent-glow: rgba(230,126,34,.35); }
+html[data-accent="bronze"] .shell { --accent: #A0815E; --accent-lo: rgba(160,129,94,.12); --accent-glow: rgba(160,129,94,.35); }
+html[data-accent="flow"] .shell { --accent: #1ABC9C; --accent-lo: rgba(26,188,156,.12); --accent-glow: rgba(26,188,156,.35); }
+.shell-nav { position: sticky; top: 0; height: 100dvh; width: 236px; flex: none; display: flex; flex-direction: column; padding: 24px 14px 18px; background: linear-gradient(180deg, #161616, #111); border-right: .5px solid rgba(255,255,255,.07); font-family: Montserrat, sans-serif; z-index: 20; }
+.shell-brand { display: flex; align-items: center; gap: 12px; padding: 2px 10px 26px; color: #C0C0C0; text-decoration: none; font: 500 11px Montserrat, sans-serif; letter-spacing: 4px; }
+.shell-items { display: flex; flex-direction: column; gap: 3px; flex: 1; }
+.shell-item { position: relative; display: flex; align-items: center; gap: 12px; padding: 11px 12px; border-radius: 6px; color: #888780; text-decoration: none; font-size: 12.5px; transition: background .32s ease, color .32s ease; }
+.shell-item:hover { color: #C0C0C0; background: rgba(255,255,255,.035); }
+.shell-item.on { color: var(--accent); background: var(--accent-lo); }
+.shell-item.on::before { content: ""; position: absolute; left: 0; top: 22%; bottom: 22%; width: 2px; border-radius: 2px; background: var(--accent); box-shadow: 0 0 10px var(--accent-glow); }
+.shell-ico { width: 16px; text-align: center; font-size: 14px; }
+.shell-item em { margin-left: auto; padding: 2px 8px; border-radius: 10px; background: var(--accent-lo); color: var(--accent); font: normal 500 9.5px "JetBrains Mono", monospace; }
+.shell-user { display: flex; align-items: center; gap: 10px; padding: 16px 10px 0; border-top: .5px solid rgba(255,255,255,.07); color: #FDFDFD; font-size: 12px; }
+.shell-user b { display: block; font-weight: 500; } .shell-user small { display: block; margin-top: 2px; color: #777670; font-size: 10px; }
+.shell-av { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; border: .5px solid var(--accent); background: var(--accent-lo); color: var(--accent); font: 500 10px "JetBrains Mono", monospace; }
+.shell-main { flex: 1; min-width: 0; height: 100dvh; overflow-y: auto; }
+.shell-main .hw-loader { min-height: 60vh; background: none; }
+/* the page's own navigation is replaced by the shell */
+.shell .pg > nav, .shell .pg .sidebar { display: none !important; }
+.shell .pg.pg:has(> .sidebar) { height: 100%; }
+/* one headline style, borrowed from the library page */
+.shell .topbar-title { font: 400 21px "Playfair Display", serif; letter-spacing: 0; }
+.shell .topbar-sub { margin-top: 4px; font: 500 9px Montserrat, sans-serif; letter-spacing: 3px; text-transform: uppercase; color: var(--accent); }
+.shell .card, .shell .stat-card, .shell .panel, .shell .ds-card { border-radius: 6px; }
+@media (max-width: 899px) {
+  .shell { flex-direction: column; }
+  .shell-nav { position: fixed; inset: auto 0 0 0; width: 100%; height: auto; flex-direction: row; padding: 0 0 env(safe-area-inset-bottom, 0px); border-right: 0; border-top: .5px solid rgba(255,255,255,.08); background: #141414; }
+  .shell-brand, .shell-user { display: none; }
+  .shell-items { flex-direction: row; overflow-x: auto; gap: 0; scrollbar-width: none; }
+  .shell-item { flex: 1 0 auto; flex-direction: column; justify-content: center; gap: 4px; min-width: 70px; min-height: 58px; padding: 8px; border-radius: 0; font-size: 9px; letter-spacing: 1px; text-align: center; }
+  .shell-item em { display: none; }
+  .shell-item.on::before { left: 25%; right: 25%; top: 0; bottom: auto; width: auto; height: 2px; }
+  .shell-main { height: 100dvh; padding-bottom: calc(60px + env(safe-area-inset-bottom, 0px)); }
+  .shell .pg.pg:has(> .sidebar) { height: calc(100dvh - 60px - env(safe-area-inset-bottom, 0px)); }
+}
