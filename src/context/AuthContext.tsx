@@ -4,6 +4,7 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import type { Role, Team, User } from "../types/user";
 import { supabase, isBackendConfigured } from "../lib/supabase";
+import { promptDialog, toast } from "../screens/ui";
 
 interface AuthContextValue {
   user: User | null;
@@ -35,7 +36,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // onAuthStateChange also fires INITIAL_SESSION, so no separate getSession() call is needed.
     const { data: sub } = sb.auth.onAuthStateChange((event, s) => {
       if (event === "TOKEN_REFRESHED") return; // same person, nothing to reload
-      if (event === "PASSWORD_RECOVERY") setTimeout(() => { const p = window.prompt("Choose a new password (8+ characters)"); if (p && p.length >= 8) sb.auth.updateUser({ password: p }); }, 0);
+      if (event === "PASSWORD_RECOVERY") setTimeout(async () => { const p = await promptDialog("Choose a new password (8+ characters)", { type: "password", placeholder: "New password" }, "Set password"); if (!p) return; if (p.length < 8) return toast("Use at least 8 characters.", "error"); const { error } = await sb.auth.updateUser({ password: p }); toast(error ? error.message : "Password updated", error ? "error" : "ok"); }, 0);
       // Deferred: awaiting Supabase calls inside this callback can deadlock the client.
       setTimeout(async () => {
         const u = s?.user;

@@ -4,6 +4,7 @@ import type { NavigateFunction } from "react-router-dom";
 import type { useAuth } from "../context/AuthContext";
 import type { useLibrary } from "../context/LibraryContext";
 import type { useTheme } from "../context/ThemeContext";
+import { confirmDialog, toast } from "./ui";
 import type { Song } from "../types/song";
 import { semitoneDiff, spell, transposeChord } from "../lib/transpose";
 import { chordRow, parseChordSheet, toChordSheet } from "../lib/chordsheet";
@@ -311,7 +312,7 @@ const setlists: Wire = (root, { auth, lib, nav }, signal) => {
       el.style.opacity = s.entries.length ? "" : ".55";
       const tag = q(el, ".set-tag"); if (tag) tag.textContent = s.entries.length ? (s.serviceDate < today ? "Past" : "Ready") : "Draft";
       el.classList.toggle("active", s.id === SL.id);
-      on(el, "click", () => { SL.id = s.id; paint(); }, signal);
+      on(el, "click", () => { SL.id = s.id; paint(); if (window.matchMedia("(max-width: 899px)").matches) q(root, ".detail-panel")?.scrollIntoView({ behavior: "smooth" }); }, signal);
     });
     text(root, ".detail-set-name", sl ? `${sl.serviceTitle} — ${mon(sl.serviceDate)}` : "No set lists yet");
     const pill = q(root, ".status-pill"); if (pill) { pill.textContent = sl?.entries.length ? "Ready" : "Draft"; pill.className = "status-pill " + (sl?.entries.length ? "sp-ready" : "sp-draft"); }
@@ -330,7 +331,7 @@ const setlists: Wire = (root, { auth, lib, nav }, signal) => {
       text(el, ".order-key", e.keyOverride ?? sl.listKey ?? song.originalKey); q(el, ".order-duration")?.remove();
       const b = el.querySelectorAll<HTMLElement>(".tiny-btn");
       on(b[0], "click", () => nav(`/setlists/${sl.id}/perform/${song.id}`), signal);
-      if (auth.isLead) on(b[1], "click", () => { if (confirm(`Remove "${song.title}" from this set?`)) lib.removeSongFromSetlist(sl.id, song.id); }, signal);
+      if (auth.isLead) on(b[1], "click", async () => { if (await confirmDialog(`Remove "${song.title}" from this set?`, "Remove", true)) lib.removeSongFromSetlist(sl.id, song.id); }, signal);
       else if (b[1]) b[1].style.display = "none";
     });
     repeat(root, ".assigned-row", sl?.crew ?? [], (el, c) => {
@@ -421,19 +422,20 @@ const createSetlist: Wire = (root, { auth, lib, nav }, signal) => {
   const done = () => { CS.picked = []; CS.crew = new Set(); CS.loaded = "~"; nav("/setlists"); };
   const save = async () => {
     const title = titleEl.value.trim(), day = dateEl.value;
-    if (!title || !day) return alert("Add a title and a date first.");
-    const why = await auth.ensureLead(); if (why) return alert(why);
+    if (!title || !day) return toast("Add a title and a date first.", "error");
+    const why = await auth.ensureLead(); if (why) return toast(why, "error");
     const input = {
       serviceTitle: title, serviceDate: day, eventType: q(root, ".echip.active")?.textContent ?? "Other",
       entries: CS.picked.map((p) => ({ songId: p.id, keyOverride: p.key !== lib.getSongById(p.id)?.originalKey ? p.key : undefined })),
       crew: [...CS.crew].map((id) => ({ memberId: id, role: lib.members.find((m) => m.id === id)?.instrument ?? "" })),
     };
     if (editing) lib.replaceSetlist(editing.id, input); else lib.addSetlist(input);
+    toast(editing ? "Set list updated" : "Set list created", "ok");
     done();
   };
   const del = async () => {
-    const why = await auth.ensureLead(); if (why) return alert(why);
-    if (editing && confirm(`Delete "${editing.serviceTitle}"?`)) { lib.deleteSetlist(editing.id); done(); }
+    const why = await auth.ensureLead(); if (why) return toast(why, "error");
+    if (editing && (await confirmDialog(`Delete "${editing.serviceTitle}"?`, "Delete", true))) { lib.deleteSetlist(editing.id); toast("Set list deleted"); done(); }
   };
   tb.forEach((b, i) => on(b, "click", editing && i === 0 ? del : save, signal));
   picker(); order();
@@ -465,12 +467,13 @@ const addSong: Wire = (root, { auth, lib, nav }, signal) => {
   const val = (id: string) => q<HTMLInputElement>(root, "#" + id)?.value.trim() ?? "";
   const save = async () => {
     const key = q(root, ".key-btn.active")?.textContent ?? "", style = q(root, ".style-chip.active")?.textContent ?? "";
-    if (!val("song-title") || !val("song-artist") || !key) return alert("Add a title, an artist and the original key.");
-    const why = await auth.ensureLead(); if (why) return alert(why);
+    if (!val("song-title") || !val("song-artist") || !key) return toast("Add a title, an artist and the original key.", "error");
+    const why = await auth.ensureLead(); if (why) return toast(why, "error");
     const id = lib.addSong({
       title: val("song-title"), artist: val("song-artist"), originalKey: KEYMAP[key] ?? key, bpm: val("song-bpm") ? Number(val("song-bpm")) : undefined,
       style: style.startsWith("Latin") ? "Latin" : style || undefined, body: "", sheet: q<HTMLTextAreaElement>(root, "#chord-sheet")?.value ?? "",
     });
+    toast("Song added", "ok");
     nav(`/song/${id}`);
   };
   root.querySelectorAll(".topbar-right .btn").forEach((b) => on(b, "click", save, signal));
@@ -513,8 +516,9 @@ const chordEditor: Wire = (root, { auth, lib, nav }, signal) => {
   const act = root.querySelectorAll<HTMLElement>(".topbar-actions .btn");
   on(act[0], "click", () => window.print(), signal);
   const save = async () => {
-    const why = await auth.ensureLead(); if (why) return alert(why);
+    const why = await auth.ensureLead(); if (why) return toast(why, "error");
     lib.updateSong(song.id, { title: title.value.trim() || song.title, originalKey: song.originalKey, bpm: song.bpm, body: "", sheet: ta.value });
+    toast("Chart saved", "ok");
     nav(`/song/${song.id}`);
   };
   on(act[1], "click", save, signal); on(act[2], "click", save, signal);
@@ -639,7 +643,7 @@ const singers: Wire = (root, { auth, lib, nav }, signal) => {
     repeat(root, ".roster-item", shown, (el, s) => {
       text(el, ".ri-avatar", initials(s.name)); text(el, ".ri-name", s.name); text(el, ".ri-role", s.instrument); text(el, ".ri-songs", String(songsOf(s.id).length));
       el.classList.toggle("active", s.id === SG.id);
-      on(el, "click", () => { SG.id = s.id; paint(); }, signal);
+      on(el, "click", () => { SG.id = s.id; paint(); if (window.matchMedia("(max-width: 899px)").matches) q(root, ".detail-panel")?.scrollIntoView({ behavior: "smooth" }); }, signal);
     });
     if (!m) return;
     const mine = songsOf(m.id), lead = mine.filter((s) => /lead/i.test(roleIn(s, m.id)));

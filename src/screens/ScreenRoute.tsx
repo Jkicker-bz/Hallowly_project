@@ -4,6 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
 import { useLibrary } from "../context/LibraryContext";
 import { isBackendConfigured } from "../lib/supabase";
+import { Loader } from "../components/Loader";
 import { ErrorBoundary } from "./ErrorBoundary";
 import { Screen } from "./Screen";
 import { wire } from "./wire";
@@ -37,7 +38,7 @@ export function ScreenRoute({ name: fixed }: { name?: string }) {
 
   if (wanted === "org-select") return <Navigate to={auth.signedIn ? "/dashboard" : "/login"} replace />; // single church for now
   if (wanted === "public") return <Navigate to="/library" replace />; // the library is already the public view
-  if (!loaded || loaded.name !== name || (wire[name] && lib.status === "loading")) return <div role="status" style={{ padding: 24, color: "#777670" }}>Loading…</div>;
+  if (!loaded || loaded.name !== name || (wire[name] && lib.status === "loading")) return <Loader />;
   const w = wire[name];
   return <ErrorBoundary key={name}><Screen key={name} cls={`pg-${name}`} html={loaded.html} hydrate={w && ((root, signal) => w(root, { auth, lib, nav, theme, backend: isBackendConfigured }, signal))} /></ErrorBoundary>;
 }

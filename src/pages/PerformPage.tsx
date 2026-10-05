@@ -1,5 +1,7 @@
 import { useEffect } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import { Loader } from "../components/Loader";
+import { ScreenRoute } from "../screens/ScreenRoute";
 import { OnStageView } from "../components/OnStageView";
 import { useAuth } from "../context/AuthContext";
 import { useLibrary } from "../context/LibraryContext";
@@ -20,16 +22,9 @@ export function PerformPage() {
   useEffect(() => { if (song) ensureChart(song.id); }, [song?.id]);
   useEffect(() => { if (song?.loaded !== false && nextId) ensureChart(nextId); }, [song?.loaded, nextId]); // warm the next song
 
-  if (!song) {
-    return (
-      <div className="hw-card" style={{ margin: 24 }}>
-        <div className="hw-card-title">Couldn't find that song.</div>
-        <Link className="hw-card-link" to="/setlists">← Back to setlists</Link>
-      </div>
-    );
-  }
+  if (!song) return <ScreenRoute name="404" />;
 
-  if (song.loaded === false) return <div className="hw-card" style={{ margin: 24 }} role="status"><div className="hw-card-title">Loading chart…</div></div>;
+  if (song.loaded === false) return <Loader label="Loading chart" />;
 
   const go = (k: number) => nav(`/setlists/${setlistId}/perform/${entries[k].songId}`, { replace: true });
 
