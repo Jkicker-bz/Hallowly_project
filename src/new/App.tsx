@@ -40,14 +40,14 @@ function Logo({ withName = true }: { withName?: boolean }) {
 }
 
 const calendarDays = Array.from({ length: 35 }, (_, index) => index + 1);
-const events: Record<number, { title: string; type: string; time: string; location: string; people: number }> = {
+const demoEvents: Record<number, { title: string; type: string; time: string; location: string; people: number }> = {
   9: { title: "Youth Night", type: "Gathering", time: "6:30 PM", location: "Student Hall", people: 6 },
   16: { title: "Sunday Gathering", type: "Service", time: "9:00 AM", location: "Main Auditorium", people: 8 },
   23: { title: "Worship Night", type: "Special", time: "7:00 PM", location: "Main Auditorium", people: 9 },
   30: { title: "Sunday Gathering", type: "Service", time: "9:00 AM", location: "Main Auditorium", people: 8 },
 };
 
-const rehearsals: Record<number, { title: string; time: string; description: string; visibility: "Team" | "Only you"; status?: "cancelled" }> = {
+const demoRehearsals: Record<number, { title: string; time: string; description: string; visibility: "Team" | "Only you"; status?: "cancelled" }> = {
   3: { title: "Team rehearsal", time: "7 PM", description: "Full band rehearsal in the main auditorium.", visibility: "Team" },
   5: { title: "Vocal preparation", time: "7 PM", description: "Review harmonies and Sunday vocal cues.", visibility: "Only you" },
   10: { title: "Team rehearsal", time: "7 PM", description: "Run the Sunday set and transitions.", visibility: "Team" },
@@ -132,7 +132,7 @@ const demoTeam = [
 
 function useLive() {
   const live = useLiveData();
-  return live ?? { songs: demoSongs, team: demoTeam, additionalSongs: demoAdditional, setLists: initialSetLists };
+  return live ?? { songs: demoSongs, team: demoTeam, additionalSongs: demoAdditional, setLists: initialSetLists, events: demoEvents, rehearsals: demoRehearsals, librarySongs: null as string[][] | null };
 }
 
 function PageGuide({ step, title, copy }: { step: string; title: string; copy: string }) {
@@ -177,12 +177,15 @@ function CreatorScreen({ type, onClose, onCreate, setListOptions = [] }: { type:
 }
 
 function DetailScreen({ type, title, onClose }: { type: "service" | "event" | "member"; title: string; onClose: () => void }) {
-  const { songs, team, additionalSongs } = useLive();
+  const { songs, team, additionalSongs, setLists: liveSets } = useLive();
   const [serviceSet, setServiceSet] = useState("Main Set");
   if (type === "member") return <div className="detail-screen"><header><button onClick={onClose}><Icon name="chevron" /> Back</button><p className="eyebrow">Team profile</p><span /></header><main><section className="member-hero card"><div className="avatar violet">{title.split(" ").map((part) => part[0]).join("")}</div><div><h1>{title}</h1><p>Vocalist · Worship Leader</p><span>Confirmed for Sunday Gathering</span></div><button><Icon name="message" /> Message</button></section><div className="member-detail-grid"><article className="card"><p className="eyebrow">Upcoming schedule</p>{[["MAR 30","Sunday Gathering","Lead vocal"],["APR 13","Palm Sunday","Backup vocal"],["APR 27","Sunday Gathering","Worship leader"]].map((item) => <div className="profile-schedule" key={item[0]}><span>{item[0]}</span><div><strong>{item[1]}</strong><small>{item[2]}</small></div><Icon name="chevron" size={14} /></div>)}</article><article className="card"><p className="eyebrow">Songs they lead</p>{["Goodness of God","Holy Forever","Gratitude"].map((song,index) => <button className="profile-song" key={song}><span className="song-art"><Icon name="music" /></span><span><strong>{song}</strong><small>{index + 3} times led</small></span><Icon name="chevron" size={14} /></button>)}</article></div></main></div>;
   if (type === "event") return <div className="detail-screen"><header><button onClick={onClose}><Icon name="chevron" /> Back</button><p className="eyebrow">Calvario Sur · Team event</p><button className="accent-action">Edit event</button></header><main><section className="event-detail-hero card"><span className="settings-symbol"><Icon name="calendar" /></span><div><p className="eyebrow">Shared with team</p><h1>{title}</h1><p><Icon name="clock" size={14} /> April 20 · 9:00 AM · Main Auditorium</p></div></section><article className="event-description card"><p className="eyebrow">Details</p><h3>Team calendar item</h3><p>Use this space for rehearsal details, preparation notes, or reminders. All approved members of Calvario Sur can see this event.</p><div><span><Icon name="users" size={14} /> Team visibility</span><button>Notify team</button></div></article></main></div>;
-  const detailSongs = serviceSet === "Main Set" ? songs : serviceSet === "Offering" ? [additionalSongs[0], songs[2]] : [songs[3]];
-  return <div className="detail-screen"><header><button onClick={onClose}><Icon name="chevron" /> Back</button><p className="eyebrow">Calvario Sur · Service</p><button className="accent-action">Edit service</button></header><main><section className="service-detail-hero card"><div className="date-block"><strong>30</strong><small>MAR</small></div><div><p className="eyebrow">Next service</p><h1>{title}</h1><p><Icon name="clock" size={14} /> Sunday · 9:00 AM · Main Auditorium</p></div><span className="ready-badge">Ready</span></section><div className="service-detail-grid"><article className="card"><div className="section-heading"><div><p className="eyebrow">Service flow</p><h3>3 set lists · {songs.length + 3} songs</h3></div><button className="accent-action"><Icon name="play" /> Rehearse</button></div><div className="service-set-tabs">{["Main Set","Offering","Response"].map((set,index) => <button className={serviceSet === set ? "active" : ""} onClick={() => setServiceSet(set)} key={set}><span style={{ background: ["#9b59b6","#1abc9c","#e67e22"][index] }} />{set}<small>{[4,2,1][index]}</small></button>)}</div>{detailSongs.map((song,index) => <button className="detail-song" key={song.title}><span>{String(index+1).padStart(2,"0")}</span><span className="song-art"><Icon name="music" /></span><span><strong>{song.title}</strong><small>{song.detail}</small></span><em>{song.leader}</em></button>)}</article><aside><article className="card"><p className="eyebrow">Serving team</p>{team.slice(0,5).map((person) => <div className="detail-person" key={person.name}><span className={`avatar ${person.color}`}>{person.initials}</span><span><strong>{person.name}</strong><small>{person.role}</small></span><i /></div>)}</article><article className="card service-note"><p className="eyebrow">Service note</p><p>Band at 7:15, vocals at 7:30. Full run starts promptly at 7:45.</p></article></aside></div></main></div>;
+  const rec = isBackendConfigured ? liveSets.find((x) => x.title === title) : undefined;
+  const tabOf = (section = "") => (/offering/i.test(section) ? "Offering" : /response/i.test(section) ? "Response" : "Main Set");
+  const inTab = (set: string) => (rec?.songs ?? []).filter((x) => tabOf((x as { section?: string }).section) === set);
+  const detailSongs = isBackendConfigured ? inTab(serviceSet) : serviceSet === "Main Set" ? songs : serviceSet === "Offering" ? [additionalSongs[0], songs[2]] : [songs[3]];
+  return <div className="detail-screen"><header><button onClick={onClose}><Icon name="chevron" /> Back</button><p className="eyebrow">Calvario Sur · Service</p><button className="accent-action">Edit service</button></header><main><section className="service-detail-hero card"><div className="date-block"><strong>{rec ? rec.date.split(" ")[1] : "30"}</strong><small>{rec ? rec.date.split(" ")[0] : "MAR"}</small></div><div><p className="eyebrow">Next service</p><h1>{title}</h1><p><Icon name="clock" size={14} /> Sunday · 9:00 AM · Main Auditorium</p></div><span className="ready-badge">Ready</span></section><div className="service-detail-grid"><article className="card"><div className="section-heading"><div><p className="eyebrow">Service flow</p><h3>{isBackendConfigured ? `${rec?.songs.length ?? 0} songs in this service` : `3 set lists · ${songs.length + 3} songs`}</h3></div><button className="accent-action"><Icon name="play" /> Rehearse</button></div><div className="service-set-tabs">{["Main Set","Offering","Response"].map((set,index) => <button className={serviceSet === set ? "active" : ""} onClick={() => setServiceSet(set)} key={set}><span style={{ background: ["#9b59b6","#1abc9c","#e67e22"][index] }} />{set}<small>{isBackendConfigured ? inTab(set).length : [4,2,1][index]}</small></button>)}</div>{detailSongs.map((song,index) => <button className="detail-song" key={song.title}><span>{String(index+1).padStart(2,"0")}</span><span className="song-art"><Icon name="music" /></span><span><strong>{song.title}</strong><small>{song.detail}</small></span><em>{song.leader}</em></button>)}</article><aside><article className="card"><p className="eyebrow">Serving team</p>{team.slice(0,5).map((person) => <div className="detail-person" key={person.name}><span className={`avatar ${person.color}`}>{person.initials}</span><span><strong>{person.name}</strong><small>{person.role}</small></span><i /></div>)}</article><article className="card service-note"><p className="eyebrow">Service note</p><p>Band at 7:15, vocals at 7:30. Full run starts promptly at 7:45.</p></article></aside></div></main></div>;
 }
 
 function WorkspacePage({ page, onExit, onNavigate, contextSong, accent, onAccentChange, darkMode, onDarkModeChange }: { page: string; onExit?: () => void; onNavigate?: (page: string, song?: string) => void; contextSong?: string | null; accent: string; onAccentChange: (color: string) => void; darkMode: boolean; onDarkModeChange: (dark: boolean) => void }) {
@@ -215,8 +218,8 @@ function WorkspacePage({ page, onExit, onNavigate, contextSong, accent, onAccent
   const [createdServices, setCreatedServices] = useState<Array<{ name: string; kind: "service" | "event" }>>(() => loadStored("hallowly-created-schedule", []));
   const [setTemplates, setSetTemplates] = useState<Array<{ name: string; color: string; songs: Song[] }>>(() => loadStored("hallowly-set-templates", [
     { name: "Sunday Standard", color: "#9b59b6", songs: songs.slice(0, 3) },
-    { name: "Acoustic Evening", color: "#a0815e", songs: [songs[1], additionalSongs[0]] },
-    { name: "Youth Gathering", color: "#1abc9c", songs: [additionalSongs[1], songs[1], additionalSongs[0]] },
+    { name: "Acoustic Evening", color: "#a0815e", songs: [songs[1], additionalSongs[0]].filter(Boolean) },
+    { name: "Youth Gathering", color: "#1abc9c", songs: [additionalSongs[1], songs[1], additionalSongs[0]].filter(Boolean) },
   ]));
   const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
   const [templateName, setTemplateName] = useState("");
@@ -351,16 +354,16 @@ function WorkspacePage({ page, onExit, onNavigate, contextSong, accent, onAccent
         {templateDialogOpen && activeSet && <div className="song-picker-backdrop" onClick={() => setTemplateDialogOpen(false)}><section className="template-dialog card" onClick={(event) => event.stopPropagation()}><span className="settings-symbol"><Icon name="note" /></span><p className="eyebrow">Reusable set list</p><h2>Save as template</h2><p>This saves the song order and current keys without the service date or team assignments.</p><label>Template name<input autoFocus value={templateName} onChange={(event) => setTemplateName(event.target.value)} /></label><div><button onClick={() => setTemplateDialogOpen(false)}>Cancel</button><button className="accent-action" onClick={() => { if (!templateName.trim()) return; setSetTemplates((current) => [...current, { name: templateName.trim(), color: activeSet.color, songs: activeSet.songs }]); setTemplateDialogOpen(false); }}>Save template</button></div></section></div>}
         {selectedSong && selectedSetSong && activeSet && <div className="song-editor-backdrop" onClick={() => setSelectedSong(null)}><section className="set-song-viewer card" onClick={(event) => event.stopPropagation()}><header><button onClick={() => setSelectedSong(null)}><Icon name="chevron" size={15} /> Back</button><div><p className="eyebrow">{activeSet.title} · Set arrangement</p><h2>{selectedSetSong.title}</h2><span>{selectedSetSong.detail}</span></div><label>Set key<select value={selectedSetKey} onChange={(event) => setSetKeys({ ...setKeys, [selectedSong]: event.target.value })}>{chromatic.map((key) => <option key={key}>{key}</option>)}</select></label></header><div className="set-song-viewer-body"><main><section><span>VERSE 1</span><code>{transposeChord("G", viewerTranspose)}　　　　 {transposeChord("D/F#", viewerTranspose)}</code><p>Al estar aquí, delante de ti</p><code>{transposeChord("Em", viewerTranspose)}　　　　 {transposeChord("C", viewerTranspose)}</code><p>Te adoraré, postrado ante ti</p><code>{transposeChord("G", viewerTranspose)}　　　　　 {transposeChord("D", viewerTranspose)}</code><p>Mi corazón te entrego a ti</p></section><section><span>CHORUS</span><code>{transposeChord("C", viewerTranspose)}　　　　　 {transposeChord("G/B", viewerTranspose)}</code><p>Mi corazón adora tu nombre</p><code>{transposeChord("Am7", viewerTranspose)}　　　　 {transposeChord("D", viewerTranspose)}</code><p>Espíritu de Dios, ven sobre mí</p></section></main><aside><div><p className="eyebrow">Arrangement notes</p><p>{selectedSetSong.notes}</p></div><div><p className="eyebrow">Set note</p><p>{activeSet.note || "No set note added."}</p></div><div className="viewer-comment"><span className="avatar auburn">SK</span><p>Try the final chorus with vocals only.</p></div><button onClick={() => setSavedVersion(true)}><Icon name="note" size={14} /> {savedVersion ? "Arrangement saved" : "Edit arrangement"}</button></aside></div></section></div>}
         {rehearseOpen && activeSet && setSongs[rehearsalSong] && <div className="rehearsal-backdrop"><section className="rehearsal-player">
-          <header><button onClick={() => setRehearseOpen(false)}><Icon name="chevron" size={17} /></button><div><strong>{setSongs[rehearsalSong].title}</strong><span>{activeSet.title} · {rehearsalSong + 1} of {setSongs.length}</span></div><em>{transposeChord(setKeys[setSongs[rehearsalSong].title] ?? setSongs[rehearsalSong].detail.split(" · ")[0], transpose)}</em></header>
+          <header><button onClick={() => setRehearseOpen(false)}><Icon name="chevron" size={17} /></button><div><strong>{setSongs[rehearsalSong]?.title}</strong><span>{activeSet.title} · {rehearsalSong + 1} of {setSongs.length}</span></div><em>{transposeChord(setKeys[setSongs[rehearsalSong]?.title] ?? setSongs[rehearsalSong].detail.split(" · ")[0], transpose)}</em></header>
           <div className="rehearsal-scroll"><span>VERSE 1</span><code>{transposeChord("G", transpose)}　　　　　 {transposeChord("D/F#", transpose)}</code><p>Al estar aquí, delante de ti</p><code>{transposeChord("Em", transpose)}　　　　 {transposeChord("C", transpose)}</code><p>Te adoraré, postrado ante ti</p><code>{transposeChord("G", transpose)}　　　　　 {transposeChord("D", transpose)}</code><p>Mi corazón te entrego a ti</p><span>CHORUS</span><code>{transposeChord("C", transpose)}　　　　　 {transposeChord("G/B", transpose)}</code><p>Mi corazón adora tu nombre</p><code>{transposeChord("Am7", transpose)}　　　　 {transposeChord("D", transpose)}</code><p>Espíritu de Dios, ven sobre mí</p><code>{transposeChord("C", transpose)}　　　　　 {transposeChord("D", transpose)}　　 {transposeChord("G", transpose)}</code><p>Y haz tu voluntad en mí</p></div>
-          <footer><div className="rehearsal-modes"><button>Lyrics</button><button className="active">Combined</button><button>Chords</button></div><div className="rehearsal-tools"><div><button onClick={() => setTranspose((value) => value - 1)}>−</button><span><small>KEY</small>{transposeChord(setKeys[setSongs[rehearsalSong].title] ?? setSongs[rehearsalSong].detail.split(" · ")[0], transpose)}</span><button onClick={() => setTranspose((value) => value + 1)}>+</button></div><div><button>−</button><span><small>CAPO</small>0</span><button>+</button></div><button className="play-song"><Icon name="play" size={17} /></button></div><div className="song-skip"><button disabled={rehearsalSong === 0} onClick={() => { setRehearsalSong(rehearsalSong - 1); setTranspose(0); }}>← Previous</button><button disabled={rehearsalSong === setSongs.length - 1} onClick={() => { setRehearsalSong(rehearsalSong + 1); setTranspose(0); }}>Next →</button></div></footer>
+          <footer><div className="rehearsal-modes"><button>Lyrics</button><button className="active">Combined</button><button>Chords</button></div><div className="rehearsal-tools"><div><button onClick={() => setTranspose((value) => value - 1)}>−</button><span><small>KEY</small>{transposeChord(setKeys[setSongs[rehearsalSong]?.title] ?? setSongs[rehearsalSong].detail.split(" · ")[0], transpose)}</span><button onClick={() => setTranspose((value) => value + 1)}>+</button></div><div><button>−</button><span><small>CAPO</small>0</span><button>+</button></div><button className="play-song"><Icon name="play" size={17} /></button></div><div className="song-skip"><button disabled={rehearsalSong === 0} onClick={() => { setRehearsalSong(rehearsalSong - 1); setTranspose(0); }}>← Previous</button><button disabled={rehearsalSong === setSongs.length - 1} onClick={() => { setRehearsalSong(rehearsalSong + 1); setTranspose(0); }}>Next →</button></div></footer>
         </section></div>}
       </div>
     );
   }
 
   if (page === "Songs") {
-    const librarySongs = [
+    const demoLibrary = [
       ["A Dios sea la gloria", "Cristal Lewis", "G", "Contemporary", "12"],
       ["A Él la gloria", "Miel San Marcos", "B", "Contemporary", "8"],
       ["A ti atribuimos la gloria", "Elim", "A", "Contemporary", "15"],
@@ -371,6 +374,7 @@ function WorkspacePage({ page, onExit, onNavigate, contextSong, accent, onAccent
       ["Al Que Me Ciñe", "Marcos Witt", "F", "Praise", "9"],
       ["Gratitude", "Brandon Lake", "B", "Worship", "7"],
     ];
+    const librarySongs = live.librarySongs ?? demoLibrary;
     const visibleSongs = librarySongs.filter((song) => {
       const query = songSearch.trim().toLowerCase();
       const matchesSearch = !query || song.slice(0, 4).some((value) => value.toLowerCase().includes(query));
@@ -379,7 +383,7 @@ function WorkspacePage({ page, onExit, onNavigate, contextSong, accent, onAccent
     return (
       <div className="workspace-page">
         {creator && <CreatorScreen type={creator} onClose={() => setCreator(null)} />}
-        <PageGuide step="SHARED SONG LIBRARY · 241 SONGS" title="Songs belong to everyone" copy="Browse the shared catalog. Your church history and arrangements remain private to your team." />
+        <PageGuide step={`SHARED SONG LIBRARY · ${librarySongs.length} SONGS`} title="Songs belong to everyone" copy="Browse the shared catalog. Your church history and arrangements remain private to your team." />
         <div className="song-page-action"><button className="accent-action" onClick={() => setCreator("song")}><Icon name="plus" size={15} /> Add song</button></div>
         <div className="song-filter-bar card">
           <label className="search-field"><Icon name="music" size={16} /><input value={songSearch} onChange={(event) => setSongSearch(event.target.value)} placeholder="Search by title, artist, or key…" /></label>
@@ -391,13 +395,13 @@ function WorkspacePage({ page, onExit, onNavigate, contextSong, accent, onAccent
           <section>
             <div className="catalog-heading"><span>{visibleSongs.length} songs shown</span><select><option>A — Z</option><option>Most used</option><option>Recently added</option></select></div>
             <div className="song-card-grid">
-              {visibleSongs.map((song) => <article className="catalog-song card" key={song[0]}><div className="catalog-song-top"><div><h3>{song[0]}</h3><p>{song[1]}</p></div><span>{song[2]}</span></div><em>{song[3]}</em><div className="song-stats"><span><strong>{song[4]}</strong>YOUR CHURCH USES</span><span><strong>{Number(song[4]) * 2}</strong>GLOBAL USES</span></div><div className="catalog-actions"><button onClick={() => { setTranspose(0); setSelectedSong(song[0]); }}>Chords</button><button onClick={() => { setTranspose(0); setSelectedSong(song[0]); }}>View <Icon name="chevron" size={12} /></button></div></article>)}
+              {visibleSongs.map((song) => <article className="catalog-song card" key={song[0]}><div className="catalog-song-top"><div><h3>{song[0]}</h3><p>{song[1]}</p></div><span>{song[2]}</span></div><em>{song[3]}</em><div className="song-stats"><span><strong>{song[4]}</strong>YOUR CHURCH USES</span>{!isBackendConfigured && <span><strong>{Number(song[4]) * 2}</strong>GLOBAL USES</span>}</div><div className="catalog-actions"><button onClick={() => { setTranspose(0); setSelectedSong(song[0]); }}>Chords</button><button onClick={() => { setTranspose(0); setSelectedSong(song[0]); }}>View <Icon name="chevron" size={12} /></button></div></article>)}
             </div>
           </section>
           <aside className="catalog-aside">
-            <article className="card filter-summary"><p className="eyebrow">Styles</p><button onClick={() => setSongStyle("Contemporary")}><span>Contemporary</span><i><b /></i><em>230</em></button><button onClick={() => setSongStyle("Worship")}><span>Worship</span><i><b style={{ width: "34%" }} /></i><em>74</em></button><button onClick={() => setSongStyle("Praise")}><span>Praise</span><i><b style={{ width: "22%" }} /></i><em>51</em></button></article>
-            <article className="card common-keys"><p className="eyebrow">Common keys</p><div>{["C","G","D","Em","E","Am","A","Cm","Bm","Dm"].map((key) => <button key={key} onClick={() => setSongKey(key.replace("m",""))}>{key}</button>)}</div></article>
-            <article className="card recent-sets"><p className="eyebrow">Recent set lists</p><button><span>Sunday Gathering<small>MAR 23 · 5 SONGS</small></span><Icon name="chevron" size={14} /></button><button><span>Worship Night<small>MAR 16 · 6 SONGS</small></span><Icon name="chevron" size={14} /></button></article>
+            <article className="card filter-summary"><p className="eyebrow">Styles</p>{Object.entries(librarySongs.reduce<Record<string, number>>((m, x) => ((m[x[3]] = (m[x[3]] ?? 0) + 1), m), {})).sort((x, y) => y[1] - x[1]).slice(0, 4).map(([name, n]) => <button key={name} onClick={() => setSongStyle(name)}><span>{name}</span><i><b style={{ width: `${Math.round((n / Math.max(librarySongs.length, 1)) * 100)}%` }} /></i><em>{n}</em></button>)}</article>
+            <article className="card common-keys"><p className="eyebrow">Common keys</p><div>{Object.entries(librarySongs.reduce<Record<string, number>>((m, x) => ((m[x[2]] = (m[x[2]] ?? 0) + 1), m), {})).sort((x, y) => y[1] - x[1]).slice(0, 10).map((x) => x[0]).map((key) => <button key={key} onClick={() => setSongKey(key.replace("m",""))}>{key}</button>)}</div></article>
+            <article className="card recent-sets"><p className="eyebrow">Recent set lists</p>{setLists.slice(-3).reverse().map((set) => <button key={set.id}><span>{set.title}<small>{set.date} · {set.songs.length} SONGS</small></span><Icon name="chevron" size={14} /></button>)}{setLists.length === 0 && <small>No set lists yet</small>}</article>
           </aside>
         </div>
         {selectedSong && <div className="song-editor-backdrop" onClick={() => setSelectedSong(null)}>
@@ -543,7 +547,7 @@ function PublicFlow({ view, setView }: { view: "landing" | "login" | "org"; setV
 }
 
 export default function App() {
-  const { songs } = useLive();
+  const { songs, events, rehearsals } = useLive();
   const [selectedDay, setSelectedDay] = useState(30);
   const [setOpen, setSetOpen] = useState(true);
   const [expandedSong, setExpandedSong] = useState<number | null>(null);
