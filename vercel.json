@@ -1,3 +1,6 @@
 {
-  "rewrites": [{ "source": "/((?!assets/|icon.svg|manifest.webmanifest).*)", "destination": "/index.html" }]
+  "rewrites": [
+    { "source": "/new", "destination": "/new.html" },
+    { "source": "/((?!assets/|icon.svg|manifest.webmanifest|new.html).*)", "destination": "/index.html" }
+  ]
 }
