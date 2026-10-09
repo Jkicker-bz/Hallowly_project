@@ -1,7 +1,8 @@
-import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { useAuth } from "../context/AuthContext";
 import { isBackendConfigured } from "../lib/supabase";
-import { useLiveData } from "./live";
+import { useLibrary } from "../context/LibraryContext";
+import { nextSunday, recordToInput, useLiveData } from "./live";
 
 type IconName = "home" | "calendar" | "music" | "users" | "settings" | "sun" | "bell" | "chevron" | "clock" | "pin" | "message" | "plus" | "check" | "play" | "note";
 
@@ -210,7 +211,27 @@ function WorkspacePage({ page, onExit, onNavigate, contextSong, accent, onAccent
   const [sentMessages, setSentMessages] = useState<string[]>([]);
   const live = useLive();
   const [setLists, setSetLists] = useState<SetListRecord[]>(() => isBackendConfigured ? live.setLists : loadStored("hallowly-set-lists", initialSetLists));
-  useEffect(() => { if (isBackendConfigured) setSetLists(live.setLists); }, [live.setLists]);
+  const lib = useLibrary();
+  const saved = useRef<Record<string, string>>({});
+  useEffect(() => { // database -> screen, without overwriting edits that haven't been saved yet
+    if (!isBackendConfigured) return;
+    setSetLists((cur) => live.setLists.map((ls) => {
+      const loc = cur.find((c) => c.id === ls.id);
+      if (loc && JSON.stringify(loc) !== saved.current[ls.id]) return loc;
+      saved.current[ls.id] = JSON.stringify(ls);
+      return ls;
+    }));
+  }, [live.setLists]);
+  useEffect(() => { // screen -> database, a moment after the last change
+    if (!isBackendConfigured) return;
+    const t = setTimeout(() => setLists.forEach((rec) => {
+      const json = JSON.stringify(rec);
+      if (saved.current[rec.id] === undefined || saved.current[rec.id] === json || !lib.getSetlistById(rec.id)) return;
+      saved.current[rec.id] = json;
+      lib.replaceSetlist(rec.id, recordToInput(rec, lib.songs));
+    }), 700);
+    return () => clearTimeout(t);
+  }, [setLists]);
   const [activeSetId, setActiveSetId] = useState<string | null>(null);
   const [songPickerOpen, setSongPickerOpen] = useState(false);
   const [commentDraft, setCommentDraft] = useState("");
@@ -317,9 +338,13 @@ function WorkspacePage({ page, onExit, onNavigate, contextSong, accent, onAccent
       <div className="workspace-page">
         {creator && <CreatorScreen type={creator} onClose={() => setCreator(null)} onCreate={(name, color) => {
           if (creator === "set") {
-            const created: SetListRecord = { id: `set-${Date.now()}`, title: name, date: "UPCOMING", time: "9:00 AM", location: "Main Auditorium", color, status: "Draft", songs: [], note: "", comments: [] };
-            setSetLists((current) => [...current, created]);
-            setActiveSetId(created.id);
+            if (isBackendConfigured) {
+              setActiveSetId(lib.addSetlist({ serviceTitle: name, serviceDate: nextSunday(), eventType: "Sunday AM", entries: [], crew: [] }));
+            } else {
+              const created: SetListRecord = { id: `set-${Date.now()}`, title: name, date: "UPCOMING", time: "9:00 AM", location: "Main Auditorium", color, status: "Draft", songs: [], note: "", comments: [] };
+              setSetLists((current) => [...current, created]);
+              setActiveSetId(created.id);
+            }
           } else if (creator === "song" && activeSet) {
             const customSong: Song = { title: name, detail: "C · 72 BPM · 0:00", leader: "—", notes: "Newly added song." };
             addSong(customSong);
@@ -347,7 +372,7 @@ function WorkspacePage({ page, onExit, onNavigate, contextSong, accent, onAccent
         </div>
         <section className="suggestions-section">
           <div className="content-section-title"><div><p className="eyebrow">Suggested next songs</p><h2>Fits this set</h2><small>Based on key flow, worship style, and songs your church has paired before.</small></div></div>
-          <div className="suggestion-grid">{additionalSongs.map((song, index) => <article className="suggestion card" key={song.title}><span className="song-art"><Icon name="music" size={15} /></span><div><strong>{song.title}</strong><small>{["Similar worship flow","Played together before","Smooth chord transition"][index]}</small></div><em>{song.detail.split(" · ")[0]}</em><button disabled={setSongs.some((item) => item.title === song.title)} onClick={() => addSong(song)}><Icon name="plus" size={14} /></button></article>)}</div>
+          <div className="suggestion-grid">{additionalSongs.slice(0, 6).map((song, index) => <article className="suggestion card" key={song.title}><span className="song-art"><Icon name="music" size={15} /></span><div><strong>{song.title}</strong><small>{["Similar worship flow","Played together before","Smooth chord transition"][index]}</small></div><em>{song.detail.split(" · ")[0]}</em><button disabled={setSongs.some((item) => item.title === song.title)} onClick={() => addSong(song)}><Icon name="plus" size={14} /></button></article>)}</div>
         </section>
         </>}
         {songPickerOpen && activeSet && <div className="song-picker-backdrop" onClick={() => setSongPickerOpen(false)}><section className="song-picker card" onClick={(event) => event.stopPropagation()}><div><div><p className="eyebrow">Song library</p><h2>Add to {activeSet.title}</h2></div><button onClick={() => setSongPickerOpen(false)}>Close</button></div><label className="search-field"><Icon name="music" /><input placeholder="Search the shared library…" /></label><div>{availableSongs.map((song) => <button key={song.title} onClick={() => { addSong(song); setSongPickerOpen(false); }}><span className="song-art"><Icon name="music" /></span><span><strong>{song.title}</strong><small>{song.detail}</small></span><Icon name="plus" /></button>)}</div><button className="missing-song" onClick={() => { setSongPickerOpen(false); setCreator("song"); }}><Icon name="plus" /><span><strong>Song not in the library?</strong><small>Add it to the database, then include it in this set.</small></span></button></section></div>}

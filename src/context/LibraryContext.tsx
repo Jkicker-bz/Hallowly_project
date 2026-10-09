@@ -63,7 +63,7 @@ interface Ctx {
   addSong: (i: SongInput) => string;
   updateSong: (id: string, i: SongInput) => void;
   deleteSong: (id: string) => void;
-  addSetlist: (i: SetlistInput) => void;
+  addSetlist: (i: SetlistInput) => string;
   updateSetlist: (id: string, p: Partial<Pick<Setlist, "note" | "listKey">>) => void;
   setEntrySection: (setlistId: string, songId: string, section: string) => void;
   replaceSetlist: (id: string, i: SetlistInput) => void;
@@ -153,9 +153,10 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
       const sl: Setlist = { id: uid("setlist"), serviceTitle: i.serviceTitle.trim() || "Service", serviceDate: i.serviceDate, eventType: i.eventType, note: i.note, entries: i.entries ?? [], crew: i.crew ?? [] };
       setData((d) => ({ ...d, setlists: [...d.setlists, sl] }));
       if (isBackendConfigured) pushList(sl).catch(() => setStatus("error"));
+      return sl.id;
     },
     updateSetlist: (id, p) => lists(id, (s) => ({ ...s, ...p })),
-    replaceSetlist: (id, i) => lists(id, (s) => ({ ...s, serviceTitle: i.serviceTitle.trim() || s.serviceTitle, serviceDate: i.serviceDate, eventType: i.eventType ?? s.eventType, entries: i.entries ?? [], crew: i.crew ?? [] })),
+    replaceSetlist: (id, i) => lists(id, (s) => ({ ...s, serviceTitle: i.serviceTitle.trim() || s.serviceTitle, serviceDate: i.serviceDate, eventType: i.eventType ?? s.eventType, note: i.note ?? s.note, entries: i.entries ?? [], crew: i.crew ?? [] })),
     setEntrySection: (id, songId, section) =>
       lists(id, (s) => ({ ...s, entries: s.entries.map((e) => (e.songId === songId ? { ...e, section: section || undefined } : e)) })),
     deleteSetlist: (id) => {
