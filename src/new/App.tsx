@@ -1,7 +1,9 @@
-import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { Fragment, useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { useAuth } from "../context/AuthContext";
 import { isBackendConfigured } from "../lib/supabase";
 import { useLibrary } from "../context/LibraryContext";
+import { chordRow, fromInlineSheet, toInlineSheet } from "../lib/chordsheet";
+import { semitoneDiff, spell, transposeChord as shiftChord } from "../lib/transpose";
 import { nextSunday, recordToInput, useLiveData } from "./live";
 
 type IconName = "home" | "calendar" | "music" | "users" | "settings" | "sun" | "bell" | "chevron" | "clock" | "pin" | "message" | "plus" | "check" | "play" | "note";
@@ -136,6 +138,18 @@ function useLive() {
   return live ?? { songs: demoSongs, team: demoTeam, additionalSongs: demoAdditional, setLists: initialSetLists, events: demoEvents, rehearsals: demoRehearsals, librarySongs: null as string[][] | null };
 }
 
+/** A real chart from the database, shown in the design's own markup, in the key being displayed. */
+function ChartBody({ title, keyName, mode = "chords" }: { title?: string | null; keyName: string; mode?: string }) {
+  const lib = useLibrary();
+  const song = title ? lib.songs.find((x) => x.title === title) : undefined;
+  useEffect(() => { if (song) lib.ensureChart(song.id); }, [song?.id]);
+  if (!song) return <section><span>CHART</span><p>No chart available.</p></section>;
+  if (song.loaded === false) return <section><span>CHART</span><p>Loading chart…</p></section>;
+  if (!song.sections.length) return <section><span>CHART</span><p>No chart yet. A lead can add one with Edit chords.</p></section>;
+  const steps = semitoneDiff(song.originalKey, keyName), flat = spell(song.originalKey, steps).flat;
+  return <>{song.sections.map((sec) => <section key={sec.id}><span>{(sec.label ?? sec.kind).toUpperCase()}</span>{sec.lines.map((l) => <Fragment key={l.id}>{mode !== "lyrics" && l.chords.length > 0 && <code style={{ whiteSpace: "pre" }}>{chordRow(l, (c) => shiftChord(c, steps, flat))}</code>}{l.lyric && <p>{l.lyric}</p>}</Fragment>)}</section>)}</>;
+}
+
 function PageGuide({ step, title, copy }: { step: string; title: string; copy: string }) {
   const storageKey = `hallowly-guide-${step.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
   const [visible, setVisible] = useState(() => typeof window === "undefined" || window.localStorage.getItem(storageKey) !== "dismissed");
@@ -212,6 +226,21 @@ function WorkspacePage({ page, onExit, onNavigate, contextSong, accent, onAccent
   const live = useLive();
   const [setLists, setSetLists] = useState<SetListRecord[]>(() => isBackendConfigured ? live.setLists : loadStored("hallowly-set-lists", initialSetLists));
   const lib = useLibrary();
+  const { isLead } = useAuth();
+  const liveSong = isBackendConfigured && selectedSong ? lib.songs.find((x) => x.title === selectedSong) : undefined;
+  const chartKey = liveSong?.originalKey ?? "G";
+  const [draft, setDraft] = useState({ title: "", artist: "", style: "Worship", key: "G", bpm: "", sheet: "" });
+  useEffect(() => { if (liveSong) lib.ensureChart(liveSong.id); }, [selectedSong]);
+  useEffect(() => { // fill the editor from the real song each time it opens
+    if (!liveSong || !chordEditorOpen || liveSong.loaded === false) return;
+    setDraft({ title: liveSong.title, artist: liveSong.artist ?? "", style: liveSong.style ?? "Worship", key: liveSong.originalKey, bpm: liveSong.bpm ? String(liveSong.bpm) : "", sheet: toInlineSheet(liveSong.sections) });
+  }, [chordEditorOpen, selectedSong, liveSong?.loaded]);
+  const saveSong = () => {
+    if (!liveSong) return;
+    const title = draft.title.trim() || liveSong.title;
+    lib.updateSong(liveSong.id, { title, artist: draft.artist, style: draft.style, originalKey: draft.key, bpm: draft.bpm ? Number(draft.bpm) : undefined, body: "", sections: fromInlineSheet(draft.sheet) });
+    setChordEditorOpen(false); setSelectedSong(title);
+  };
   const saved = useRef<Record<string, string>>({});
   useEffect(() => { // database -> screen, without overwriting edits that haven't been saved yet
     if (!isBackendConfigured) return;
@@ -332,7 +361,6 @@ function WorkspacePage({ page, onExit, onNavigate, contextSong, accent, onAccent
     const availableSongs = [...songs, ...additionalSongs].filter((song) => !setSongs.some((current) => current.title === song.title));
     const selectedSetSong = setSongs.find((song) => song.title === selectedSong);
     const selectedSetKey = selectedSong && selectedSetSong ? (setKeys[selectedSong] ?? selectedSetSong.detail.split(" · ")[0]) : "G";
-    const viewerTranspose = chromatic.indexOf(selectedSetKey) - chromatic.indexOf("G");
     const addSong = (song: Song) => updateActiveSet((set) => ({ ...set, songs: [...set.songs, song] }));
     return (
       <div className="workspace-page">
@@ -377,10 +405,10 @@ function WorkspacePage({ page, onExit, onNavigate, contextSong, accent, onAccent
         </>}
         {songPickerOpen && activeSet && <div className="song-picker-backdrop" onClick={() => setSongPickerOpen(false)}><section className="song-picker card" onClick={(event) => event.stopPropagation()}><div><div><p className="eyebrow">Song library</p><h2>Add to {activeSet.title}</h2></div><button onClick={() => setSongPickerOpen(false)}>Close</button></div><label className="search-field"><Icon name="music" /><input placeholder="Search the shared library…" /></label><div>{availableSongs.map((song) => <button key={song.title} onClick={() => { addSong(song); setSongPickerOpen(false); }}><span className="song-art"><Icon name="music" /></span><span><strong>{song.title}</strong><small>{song.detail}</small></span><Icon name="plus" /></button>)}</div><button className="missing-song" onClick={() => { setSongPickerOpen(false); setCreator("song"); }}><Icon name="plus" /><span><strong>Song not in the library?</strong><small>Add it to the database, then include it in this set.</small></span></button></section></div>}
         {templateDialogOpen && activeSet && <div className="song-picker-backdrop" onClick={() => setTemplateDialogOpen(false)}><section className="template-dialog card" onClick={(event) => event.stopPropagation()}><span className="settings-symbol"><Icon name="note" /></span><p className="eyebrow">Reusable set list</p><h2>Save as template</h2><p>This saves the song order and current keys without the service date or team assignments.</p><label>Template name<input autoFocus value={templateName} onChange={(event) => setTemplateName(event.target.value)} /></label><div><button onClick={() => setTemplateDialogOpen(false)}>Cancel</button><button className="accent-action" onClick={() => { if (!templateName.trim()) return; setSetTemplates((current) => [...current, { name: templateName.trim(), color: activeSet.color, songs: activeSet.songs }]); setTemplateDialogOpen(false); }}>Save template</button></div></section></div>}
-        {selectedSong && selectedSetSong && activeSet && <div className="song-editor-backdrop" onClick={() => setSelectedSong(null)}><section className="set-song-viewer card" onClick={(event) => event.stopPropagation()}><header><button onClick={() => setSelectedSong(null)}><Icon name="chevron" size={15} /> Back</button><div><p className="eyebrow">{activeSet.title} · Set arrangement</p><h2>{selectedSetSong.title}</h2><span>{selectedSetSong.detail}</span></div><label>Set key<select value={selectedSetKey} onChange={(event) => setSetKeys({ ...setKeys, [selectedSong]: event.target.value })}>{chromatic.map((key) => <option key={key}>{key}</option>)}</select></label></header><div className="set-song-viewer-body"><main><section><span>VERSE 1</span><code>{transposeChord("G", viewerTranspose)}　　　　 {transposeChord("D/F#", viewerTranspose)}</code><p>Al estar aquí, delante de ti</p><code>{transposeChord("Em", viewerTranspose)}　　　　 {transposeChord("C", viewerTranspose)}</code><p>Te adoraré, postrado ante ti</p><code>{transposeChord("G", viewerTranspose)}　　　　　 {transposeChord("D", viewerTranspose)}</code><p>Mi corazón te entrego a ti</p></section><section><span>CHORUS</span><code>{transposeChord("C", viewerTranspose)}　　　　　 {transposeChord("G/B", viewerTranspose)}</code><p>Mi corazón adora tu nombre</p><code>{transposeChord("Am7", viewerTranspose)}　　　　 {transposeChord("D", viewerTranspose)}</code><p>Espíritu de Dios, ven sobre mí</p></section></main><aside><div><p className="eyebrow">Arrangement notes</p><p>{selectedSetSong.notes}</p></div><div><p className="eyebrow">Set note</p><p>{activeSet.note || "No set note added."}</p></div><div className="viewer-comment"><span className="avatar auburn">SK</span><p>Try the final chorus with vocals only.</p></div><button onClick={() => setSavedVersion(true)}><Icon name="note" size={14} /> {savedVersion ? "Arrangement saved" : "Edit arrangement"}</button></aside></div></section></div>}
+        {selectedSong && selectedSetSong && activeSet && <div className="song-editor-backdrop" onClick={() => setSelectedSong(null)}><section className="set-song-viewer card" onClick={(event) => event.stopPropagation()}><header><button onClick={() => setSelectedSong(null)}><Icon name="chevron" size={15} /> Back</button><div><p className="eyebrow">{activeSet.title} · Set arrangement</p><h2>{selectedSetSong.title}</h2><span>{selectedSetSong.detail}</span></div><label>Set key<select value={selectedSetKey} onChange={(event) => setSetKeys({ ...setKeys, [selectedSong]: event.target.value })}>{chromatic.map((key) => <option key={key}>{key}</option>)}</select></label></header><div className="set-song-viewer-body"><main><ChartBody title={selectedSong} keyName={selectedSetKey} /></main><aside><div><p className="eyebrow">Arrangement notes</p><p>{selectedSetSong.notes}</p></div><div><p className="eyebrow">Set note</p><p>{activeSet.note || "No set note added."}</p></div><div className="viewer-comment"><span className="avatar auburn">SK</span><p>Try the final chorus with vocals only.</p></div><button onClick={() => setSavedVersion(true)}><Icon name="note" size={14} /> {savedVersion ? "Arrangement saved" : "Edit arrangement"}</button></aside></div></section></div>}
         {rehearseOpen && activeSet && setSongs[rehearsalSong] && <div className="rehearsal-backdrop"><section className="rehearsal-player">
           <header><button onClick={() => setRehearseOpen(false)}><Icon name="chevron" size={17} /></button><div><strong>{setSongs[rehearsalSong]?.title}</strong><span>{activeSet.title} · {rehearsalSong + 1} of {setSongs.length}</span></div><em>{transposeChord(setKeys[setSongs[rehearsalSong]?.title] ?? setSongs[rehearsalSong].detail.split(" · ")[0], transpose)}</em></header>
-          <div className="rehearsal-scroll"><span>VERSE 1</span><code>{transposeChord("G", transpose)}　　　　　 {transposeChord("D/F#", transpose)}</code><p>Al estar aquí, delante de ti</p><code>{transposeChord("Em", transpose)}　　　　 {transposeChord("C", transpose)}</code><p>Te adoraré, postrado ante ti</p><code>{transposeChord("G", transpose)}　　　　　 {transposeChord("D", transpose)}</code><p>Mi corazón te entrego a ti</p><span>CHORUS</span><code>{transposeChord("C", transpose)}　　　　　 {transposeChord("G/B", transpose)}</code><p>Mi corazón adora tu nombre</p><code>{transposeChord("Am7", transpose)}　　　　 {transposeChord("D", transpose)}</code><p>Espíritu de Dios, ven sobre mí</p><code>{transposeChord("C", transpose)}　　　　　 {transposeChord("D", transpose)}　　 {transposeChord("G", transpose)}</code><p>Y haz tu voluntad en mí</p></div>
+          <div className="rehearsal-scroll"><ChartBody title={setSongs[rehearsalSong]?.title} keyName={transposeChord(setKeys[setSongs[rehearsalSong]?.title] ?? setSongs[rehearsalSong].detail.split(" · ")[0], transpose)} /></div>
           <footer><div className="rehearsal-modes"><button>Lyrics</button><button className="active">Combined</button><button>Chords</button></div><div className="rehearsal-tools"><div><button onClick={() => setTranspose((value) => value - 1)}>−</button><span><small>KEY</small>{transposeChord(setKeys[setSongs[rehearsalSong]?.title] ?? setSongs[rehearsalSong].detail.split(" · ")[0], transpose)}</span><button onClick={() => setTranspose((value) => value + 1)}>+</button></div><div><button>−</button><span><small>CAPO</small>0</span><button>+</button></div><button className="play-song"><Icon name="play" size={17} /></button></div><div className="song-skip"><button disabled={rehearsalSong === 0} onClick={() => { setRehearsalSong(rehearsalSong - 1); setTranspose(0); }}>← Previous</button><button disabled={rehearsalSong === setSongs.length - 1} onClick={() => { setRehearsalSong(rehearsalSong + 1); setTranspose(0); }}>Next →</button></div></footer>
         </section></div>}
       </div>
@@ -432,51 +460,47 @@ function WorkspacePage({ page, onExit, onNavigate, contextSong, accent, onAccent
         {selectedSong && <div className="song-editor-backdrop" onClick={() => setSelectedSong(null)}>
           <section className="song-sheet general-song-sheet card" onClick={(event) => event.stopPropagation()}>
             <header className="song-sheet-head">
-              <div><p className="eyebrow">Shared song</p><h2>{selectedSong}</h2><p>Jesús Adrián Romero</p><div><span>Worship</span><span>Original key G</span><span>72 BPM</span></div></div>
+              <div><p className="eyebrow">Shared song</p><h2>{selectedSong}</h2><p>{liveSong?.artist}</p><div><span>{liveSong?.style ?? "—"}</span><span>Original key {chartKey}</span>{liveSong?.bpm ? <span>{liveSong.bpm} BPM</span> : null}</div></div>
               <button onClick={() => setSelectedSong(null)}>Close</button>
             </header>
             <div className="song-sheet-toolbar">
               <div className="segmented"><button className={songView === "chords" ? "active" : ""} onClick={() => setSongView("chords")}>Lyrics + chords</button><button className={songView === "lyrics" ? "active" : ""} onClick={() => setSongView("lyrics")}>Lyrics only</button></div>
-              <button className="edit-chords-button" onClick={() => setChordEditorOpen((value) => !value)}><Icon name="note" size={14} /> {chordEditorOpen ? "Close editor" : "Edit chords"}</button>
+              {(!isBackendConfigured || isLead) && <button className="edit-chords-button" onClick={() => setChordEditorOpen((value) => !value)}><Icon name="note" size={14} /> {chordEditorOpen ? "Close editor" : "Edit chords"}</button>}
             </div>
             {chordEditorOpen ? <div className="fullscreen-chord-editor">
               <header className="chord-editor-top">
                 <button className="editor-back" onClick={() => setChordEditorOpen(false)}><Icon name="chevron" size={16} /> Back to song</button>
-                <div><p className="eyebrow">Chord sheet workspace</p><strong>{selectedSong}</strong><span>Editing the shared chart · Changes are not live until published</span></div>
-                <div><button>Save draft</button><button className="accent-action">Publish changes</button></div>
+                <div><p className="eyebrow">Chord sheet workspace</p><strong>{selectedSong}</strong><span>Editing the shared chart</span></div>
+                <div><button onClick={saveSong}>Save draft</button><button className="accent-action" onClick={saveSong}>Publish changes</button></div>
               </header>
               <div className="chord-editor-layout">
                 <main className="chord-editor-main">
                   <section className="editor-section">
                     <div className="editor-section-title"><span>01</span><div><strong>Song identity</strong><small>General information shown in the shared library</small></div></div>
-                    <div className="identity-fields"><label>Song title<input defaultValue={selectedSong} /></label><label>Artist / writer<input defaultValue="Jesús Adrián Romero" /></label><label>Language<select defaultValue="Spanish"><option>Spanish</option><option>English</option><option>Bilingual</option></select></label><label>Genre<select defaultValue="Worship"><option>Worship</option><option>Praise</option><option>Contemporary</option><option>Hymn</option></select></label></div>
+                    <div className="identity-fields"><label>Song title<input value={draft.title} onChange={(e) => setDraft({ ...draft, title: e.target.value })} /></label><label>Artist / writer<input value={draft.artist} onChange={(e) => setDraft({ ...draft, artist: e.target.value })} /></label><label>Genre<select value={draft.style} onChange={(e) => setDraft({ ...draft, style: e.target.value })}>{[...new Set(["Worship", "Praise", "Contemporary", "Hymn", draft.style])].map((g) => <option key={g}>{g}</option>)}</select></label></div>
                   </section>
                   <section className="editor-section">
                     <div className="editor-section-title"><span>02</span><div><strong>Musical details</strong><small>Set the source key before writing the chart</small></div></div>
-                    <div className="editor-musical-row"><label>Original key<select value={transposeChord("G", transpose)} onChange={(event) => setTranspose(chromatic.indexOf(event.target.value) - chromatic.indexOf("G"))}>{chromatic.map((key) => <option key={key}>{key}</option>)}</select></label><label>Tempo<input defaultValue="72" /></label><label>Time signature<select defaultValue="4/4"><option>4/4</option><option>3/4</option><option>6/8</option><option>12/8</option></select></label></div>
+                    <div className="editor-musical-row"><label>Original key<select value={draft.key} onChange={(e) => setDraft({ ...draft, key: e.target.value })}>{[...new Set([...chromatic, draft.key])].map((k) => <option key={k}>{k}</option>)}</select></label><label>Tempo<input value={draft.bpm} onChange={(e) => setDraft({ ...draft, bpm: e.target.value.replace(/\D/g, "") })} /></label></div>
                   </section>
                   <section className="editor-section chord-writing">
                     <div className="editor-section-title"><span>03</span><div><strong>Chord sheet</strong><small>Place chords in brackets directly before the lyric where they change</small></div></div>
-                    <div className="insert-sections"><span>INSERT SECTION</span>{["Verse","Pre-Chorus","Chorus","Bridge","Outro"].map((section) => <button key={section}>+ {section}</button>)}</div>
-                    <label><textarea spellCheck={false} defaultValue={`[Verse 1]\n[${transposeChord("G", transpose)}] Al estar aquí, [${transposeChord("D/F#", transpose)}] delante de ti\n[${transposeChord("Em", transpose)}] Te adoraré, [${transposeChord("C", transpose)}] postrado ante ti\n[${transposeChord("G", transpose)}] Mi corazón te entrego a [${transposeChord("D", transpose)}] ti\n\n[Chorus]\n[${transposeChord("C", transpose)}] Mi corazón [${transposeChord("G/B", transpose)}] adora tu nombre\n[${transposeChord("Am7", transpose)}] Espíritu de Dios, [${transposeChord("D", transpose)}] ven sobre mí\n[${transposeChord("C", transpose)}] Y haz tu voluntad [${transposeChord("D", transpose)}] en [${transposeChord("G", transpose)}] mí`} /></label>
+                    <div className="insert-sections"><span>INSERT SECTION</span>{["Verse","Pre-Chorus","Chorus","Bridge","Outro"].map((section) => <button key={section} onClick={() => setDraft((d) => ({ ...d, sheet: `${d.sheet}\n\n[${section}]\n` }))}>+ {section}</button>)}</div>
+                    <label><textarea spellCheck={false} value={draft.sheet} onChange={(e) => setDraft({ ...draft, sheet: e.target.value })} /></label>
                   </section>
                 </main>
                 <aside className="chord-editor-aside">
-                  <article className="editor-preview card"><p className="eyebrow">Live preview</p><h3>{selectedSong}</h3><span>Jesús Adrián Romero · Key {transposeChord("G", transpose)}</span><div><code>{transposeChord("G", transpose)}　　{transposeChord("D/F#", transpose)}</code><p>Al estar aquí, delante de ti</p><code>{transposeChord("Em", transpose)}　　{transposeChord("C", transpose)}</code><p>Te adoraré, postrado ante ti</p></div></article>
-                  <article className="editor-options card"><p className="eyebrow">Save destination</p><label><input type="radio" name="destination" defaultChecked /> Correct the shared chart</label><label><input type="radio" name="destination" /> Save as a Calvario Sur version</label><p>Church versions remain private to your organization.</p></article>
-                  <article className="editor-options card"><p className="eyebrow">Typical singers</p><div className="singer-chips"><button><span className="avatar violet">MJ</span>Maya</button><button><span className="avatar auburn">SK</span>Sarah</button><button><Icon name="plus" size={13} /> Assign</button></div></article>
+                  <article className="editor-preview card"><p className="eyebrow">Live preview</p><h3>{draft.title}</h3><span>{draft.artist} · Key {draft.key}</span><div>{fromInlineSheet(draft.sheet).slice(0, 2).flatMap((sec) => sec.lines.slice(0, 3).map((l) => <Fragment key={l.id}>{l.chords.length > 0 && <code style={{ whiteSpace: "pre" }}>{chordRow(l)}</code>}{l.lyric && <p>{l.lyric}</p>}</Fragment>))}</div></article>
+                  
+                  
                   <button className="pdf-hold" disabled><Icon name="note" size={15} /><span><strong>Upload chord PDF</strong><small>On hold · coming in a future update</small></span></button>
                 </aside>
               </div>
             </div> : <div className={`lyrics-sheet ${songView === "lyrics" ? "lyrics-only" : ""}`}>
-              <section><span>VERSE 1</span>{songView === "chords" && <code>{transposeChord("G", transpose)}　　　　　 {transposeChord("D/F#", transpose)}</code>}<p>Al estar aquí, delante de ti</p>{songView === "chords" && <code>{transposeChord("Em", transpose)}　　　　 {transposeChord("C", transpose)}</code>}<p>Te adoraré, postrado ante ti</p>{songView === "chords" && <code>{transposeChord("G", transpose)}　　　　　 {transposeChord("D", transpose)}</code>}<p>Mi corazón te entrego a ti</p></section>
-              <section><span>CHORUS</span>{songView === "chords" && <code>{transposeChord("C", transpose)}　　　　　 {transposeChord("G/B", transpose)}</code>}<p>Mi corazón adora tu nombre</p>{songView === "chords" && <code>{transposeChord("Am7", transpose)}　　　　 {transposeChord("D", transpose)}</code>}<p>Espíritu de Dios, ven sobre mí</p>{songView === "chords" && <code>{transposeChord("C", transpose)}　　　　　 {transposeChord("D", transpose)}　　 {transposeChord("G", transpose)}</code>}<p>Y haz tu voluntad en mí</p></section>
-            </div>}
+              <ChartBody title={selectedSong} keyName={shiftChord(chartKey, transpose)} mode={songView} /></div>}
             <footer className="song-usage">
               <div><p className="eyebrow">Previously played by your church</p><span>Select one to open the matching set list or service.</span></div>
-              <button onClick={() => onNavigate?.("Set Lists", selectedSong)}><strong>Sunday Gathering</strong><span>Mar 23 · Key E</span><Icon name="chevron" size={13} /></button>
-              <button onClick={() => onNavigate?.("Services", selectedSong)}><strong>Worship Night</strong><span>Feb 16 · Key G</span><Icon name="chevron" size={13} /></button>
-            </footer>
+              {setLists.filter((set) => set.songs.some((x) => x.title === selectedSong)).slice(0, 3).map((set) => <button key={set.id} onClick={() => onNavigate?.("Set Lists", selectedSong)}><strong>{set.title}</strong><span>{set.date}</span><Icon name="chevron" size={13} /></button>)}{!setLists.some((set) => set.songs.some((x) => x.title === selectedSong)) && <span>Not in any set list yet.</span>}</footer>
           </section>
         </div>}
       </div>

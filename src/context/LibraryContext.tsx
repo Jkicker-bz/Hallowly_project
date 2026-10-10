@@ -3,13 +3,13 @@
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { parseSongBody } from "../lib/chordpro";
 import { parseChordSheet } from "../lib/chordsheet";
-import type { Setlist, SetlistEntry, Song } from "../types/song";
+import type { Setlist, SetlistEntry, Song, SongSection } from "../types/song";
 import type { TeamMember } from "../types/user";
 import { archiveList, archiveSong, fetchAll, fetchChart, pushList, pushSong } from "../lib/remote";
 import { isBackendConfigured } from "../lib/supabase";
 import { songs as seedSongs, setlists as seedSetlists } from "../data/store";
 
-export interface SongInput { title: string; originalKey: string; bpm?: number; body: string; artist?: string; style?: string; sheet?: string }
+export interface SongInput { title: string; originalKey: string; bpm?: number; body: string; artist?: string; style?: string; sheet?: string; sections?: SongSection[] }
 export interface SetlistInput { serviceTitle: string; serviceDate: string; eventType?: string; note?: string; entries?: SetlistEntry[]; crew?: Setlist["crew"] }
 
 interface Saved { songs: Song[]; setlists: Setlist[]; members: TeamMember[] }
@@ -48,7 +48,7 @@ const mkSong = (i: SongInput, id: string): Song => ({
   artist: i.artist?.trim() || undefined,
   style: i.style,
   source: i.body,
-  sections: i.sheet !== undefined ? parseChordSheet(i.sheet) : parseSongBody(i.body),
+  sections: i.sections ?? (i.sheet !== undefined ? parseChordSheet(i.sheet) : parseSongBody(i.body)),
 });
 
 interface Ctx {

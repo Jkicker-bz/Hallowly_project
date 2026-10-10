@@ -44,3 +44,36 @@ export function toChordSheet(sections: SongSection[]): string {
   return sections.map((s) => `[${s.label ?? s.kind}]\n` + s.lines.map((l) =>
     l.isInstrumental ? l.chords.map((c) => c.symbol).join(" ") : (l.chords.length ? chordRow(l) + "\n" : "") + l.lyric).join("\n")).join("\n\n");
 }
+
+// ---- inline format used by the redesigned chord editor: "[Verse 1]" headers, "[G]word" chords ----
+import { parseLine } from "./chordpro";
+
+const SECTION_KINDS: SectionKind[] = ["intro", "verse", "chorus", "bridge", "outro", "tag", "interlude"];
+
+export function toInlineSheet(sections: SongSection[]): string {
+  return sections.map((s) => `[${s.label ?? s.kind}]\n` + s.lines.map((l) => {
+    if (l.isInstrumental) return l.chords.map((c) => `[${c.symbol}]`).join(" ");
+    let out = "", at = 0;
+    l.chords.forEach((c) => { out += l.lyric.slice(at, c.charIndex) + `[${c.symbol}]`; at = c.charIndex; });
+    return out + l.lyric.slice(at);
+  }).join("\n")).join("\n\n");
+}
+
+export function fromInlineSheet(text: string): SongSection[] {
+  const out: SongSection[] = [];
+  let cur: SongSection | null = null;
+  for (const raw of text.split("\n")) {
+    const s = raw.trim();
+    if (!s) continue;
+    const h = s.match(/^\[([^\]]+)\]$/);
+    if (h && !CHORD.test(h[1])) {
+      const k = h[1].toLowerCase();
+      cur = { id: uid("sec"), kind: /pre/.test(k) ? "pre-chorus" : SECTION_KINDS.find((x) => k.includes(x)) ?? "verse", label: h[1], lines: [] };
+      out.push(cur);
+      continue;
+    }
+    if (!cur) { cur = { id: uid("sec"), kind: "verse", label: "Verse 1", lines: [] }; out.push(cur); }
+    cur.lines.push(parseLine(raw.replace(/\] (?=\S)/g, "]").trimEnd()));
+  }
+  return out;
+}
