@@ -61,12 +61,12 @@ interface Ctx {
   getSongById: (id: string) => Song | undefined;
   getSetlistById: (id: string) => Setlist | undefined;
   addSong: (i: SongInput) => string;
-  updateSong: (id: string, i: SongInput) => void;
+  updateSong: (id: string, i: SongInput) => Promise<string | null>;
   deleteSong: (id: string) => void;
   addSetlist: (i: SetlistInput) => string;
   updateSetlist: (id: string, p: Partial<Pick<Setlist, "note" | "listKey">>) => void;
   setEntrySection: (setlistId: string, songId: string, section: string) => void;
-  replaceSetlist: (id: string, i: SetlistInput) => void;
+  replaceSetlist: (id: string, i: SetlistInput) => Promise<string | null>;
   deleteSetlist: (id: string) => void;
   addSongToSetlist: (setlistId: string, e: SetlistEntry) => void;
   removeSongFromSetlist: (setlistId: string, songId: string) => void;
@@ -112,12 +112,19 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
       .finally(() => inflight.current.delete(id));
   };
 
-  const lists = (id: string, fn: (s: Setlist) => Setlist) => {
+  /** Turns a failed database call into a message a person can act on (null = it worked). */
+  const track = (p: Promise<void>): Promise<string | null> =>
+    p.then(() => null, (e: unknown) => {
+      setStatus("error");
+      const m = (e as { message?: string })?.message ?? "Couldn't save.";
+      return /row-level security|permission|policy|denied/i.test(m) ? "You don't have permission to save this. Sign in as a Lead, and make sure auth.sql and songs.sql were run in Supabase." : m;
+    });
+  const lists = (id: string, fn: (s: Setlist) => Setlist): Promise<string | null> => {
     const cur = data.setlists.find((s) => s.id === id);
-    if (!cur) return;
+    if (!cur) return Promise.resolve("That set list no longer exists.");
     const next = fn(cur);
     setData((d) => ({ ...d, setlists: d.setlists.map((s) => (s.id === id ? next : s)) }));
-    if (isBackendConfigured) pushList(next).catch(() => setStatus("error"));
+    return isBackendConfigured ? track(pushList(next)) : Promise.resolve(null);
   };
 
   const value: Ctx = {
@@ -139,7 +146,7 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
       const prev = data.songs.find((s) => s.id === id);
       const song = mkSong({ artist: prev?.artist, style: prev?.style, ...i }, id);
       setData((d) => ({ ...d, songs: d.songs.map((s) => (s.id === id ? song : s)) }));
-      if (isBackendConfigured) pushSong(song).catch(() => setStatus("error"));
+      return isBackendConfigured ? track(pushSong(song)) : Promise.resolve(null);
     },
     deleteSong: (id) => {
       if (isBackendConfigured) archiveSong(id).catch(() => setStatus("error"));
