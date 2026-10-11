@@ -44,7 +44,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (!u || !email) return setUser(null);
         const { data } = await sb.rpc("my_profile");
         const p = Array.isArray(data) ? data[0] : null;
-        setUser({ id: u.id, name: p?.full_name ?? email.split("@")[0], role: p?.role === "Lead" ? "lead" : "member", teamId: TEAM.id });
+        setUser({ id: u.id, email, matched: !!p, name: p?.full_name ?? email.split("@")[0], role: p?.role === "Lead" ? "lead" : "member", teamId: TEAM.id });
       }, 0);
     });
     return () => sub.subscription.unsubscribe();

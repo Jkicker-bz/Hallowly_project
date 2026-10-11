@@ -21,6 +21,9 @@ export interface User {
   name: string;
   role: Role;
   teamId: string;
+  email?: string;
+  /** false = signed in, but this email isn't in the leads table (so no Lead rights). */
+  matched?: boolean;
 }
 
 export interface TeamMember {

@@ -24,6 +24,7 @@ export function buildLive(lib: Lib, today = new Date().toISOString().slice(0, 10
     color: COLORS[i % COLORS.length], status: (sl.entries.length ? "Ready" : "Draft") as "Ready" | "Planning" | "Draft",
     songs: sl.entries.flatMap((e) => { const s = lib.getSongById(e.songId); return s ? [asSong(s, e.keyOverride ?? sl.listKey, e.section ?? "")] : []; }),
     note: sl.note ?? "", comments: [] as string[],
+    crew: (sl.crew ?? []).map((c) => { const m = lib.members.find((x) => x.id === c.memberId); return [c.role || m?.instrument || "", ini(m?.name ?? "?"), (m?.name ?? "").split(" ")[0]]; }),
   }));
   const next = setLists.find((s) => s.iso >= today) ?? setLists[setLists.length - 1];
   const uses = (id: string) => lib.setlists.filter((l) => l.entries.some((e) => e.songId === id)).length;
