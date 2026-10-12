@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { useAuth } from "../context/AuthContext";
 import { isBackendConfigured } from "../lib/supabase";
 import { useLibrary } from "../context/LibraryContext";
@@ -43,7 +43,6 @@ function Logo({ withName = true }: { withName?: boolean }) {
   );
 }
 
-const calendarDays = Array.from({ length: 35 }, (_, index) => index + 1);
 const demoEvents: Record<number, { title: string; type: string; time: string; location: string; people: number }> = {
   9: { title: "Youth Night", type: "Gathering", time: "6:30 PM", location: "Student Hall", people: 6 },
   16: { title: "Sunday Gathering", type: "Service", time: "9:00 AM", location: "Main Auditorium", people: 8 },
@@ -609,7 +608,7 @@ function PublicFlow({ view, setView }: { view: "landing" | "login" | "org"; setV
 }
 
 export default function App() {
-  const { songs, events, rehearsals } = useLive();
+  const { songs, events: demoEvents2, rehearsals, setLists: liveSets } = useLive();
   const [selectedDay, setSelectedDay] = useState(30);
   const [setOpen, setSetOpen] = useState(true);
   const [expandedSong, setExpandedSong] = useState<number | null>(null);
@@ -631,6 +630,22 @@ export default function App() {
   const [profileOpen, setProfileOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [selectedCalendarDate, setSelectedCalendarDate] = useState<number | null>(null);
+  const [month, setMonth] = useState(() => { const n = new Date(); return { y: n.getFullYear(), m: n.getMonth() }; });
+  const shiftMonth = (by: number) => { setMonth((cur) => { const d = new Date(cur.y, cur.m + by, 1); return { y: d.getFullYear(), m: d.getMonth() }; }); setSelectedCalendarDate(null); };
+  const monthLabel = new Date(month.y, month.m, 1).toLocaleDateString("en", { month: "long", year: "numeric" });
+  const monthShort = new Date(month.y, month.m, 1).toLocaleDateString("en", { month: "short" }).toUpperCase();
+  const firstCol = (new Date(month.y, month.m, 1).getDay() + 6) % 7, dim = new Date(month.y, month.m + 1, 0).getDate(), prevDim = new Date(month.y, month.m, 0).getDate();
+  const monthCells = Array.from({ length: Math.ceil((firstCol + dim) / 7) * 7 }, (_, i) => { const d = i - firstCol + 1; return d < 1 ? { d: prevDim + d, muted: true } : d > dim ? { d: d - dim, muted: true } : { d, muted: false }; });
+  // Services come from the real set lists: each one appears on its own date.
+  const liveEvents = useMemo(() => {
+    const out: Record<number, { title: string; type: string; time: string; location: string; people: number; songCount: number }> = {};
+    for (const sl of liveSets as { iso?: string; title: string; location?: string; crew?: string[][]; songs: unknown[] }[]) {
+      const d = new Date((sl.iso ?? "") + "T00:00:00");
+      if (d.getFullYear() === month.y && d.getMonth() === month.m) out[d.getDate()] = { title: sl.title, type: sl.location || "Service", time: "", location: sl.location || "Service", people: sl.crew?.length ?? 0, songCount: sl.songs.length };
+    }
+    return out;
+  }, [liveSets, month]);
+  const events = isBackendConfigured ? liveEvents : demoEvents2;
   const selectedEvent = events[selectedDay];
 
   useEffect(() => {
@@ -686,14 +701,14 @@ export default function App() {
             <div className="column-label"><span>01</span><div><strong>Schedule & service plan</strong><small>Choose a date, then review the set below.</small></div></div>
             <article className="calendar-card card">
               <div className="section-heading">
-                <div><p className="eyebrow">Your schedule</p><h2>March 2025</h2></div>
-                <div className="month-nav"><button onClick={soon} aria-label="Previous month"><Icon name="chevron" size={15} /></button><button onClick={soon} aria-label="Next month"><Icon name="chevron" size={15} /></button></div>
+                <div><p className="eyebrow">Your schedule</p><h2>{monthLabel}</h2></div>
+                <div className="month-nav"><button onClick={() => shiftMonth(-1)} aria-label="Previous month"><Icon name="chevron" size={15} /></button><button onClick={() => shiftMonth(1)} aria-label="Next month"><Icon name="chevron" size={15} /></button></div>
               </div>
               <div className="weekdays">{["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"].map((day) => <span key={day}>{day}</span>)}</div>
               <div className="calendar-grid">
-                {calendarDays.map((day) => {
-                  const date = day <= 2 ? day + 24 : day - 2;
-                  const muted = day <= 2 || day > 33;
+                {monthCells.map((cell, day) => {
+                  const date = cell.d;
+                  const muted = cell.muted;
                   const event = !muted && events[date];
                   const rehearsal = !muted && rehearsals[date];
                   return (
@@ -714,8 +729,8 @@ export default function App() {
             {selectedEvent && setOpen && (
               <article className={`service-viewer card ${setOpen ? "open" : ""}`}>
                 <button className="service-summary" onClick={() => setSetOpen((value) => !value)}>
-                  <span className="date-block"><strong>{selectedDay}</strong><small>MAR</small></span>
-                  <span className="service-copy"><small>{selectedEvent.location}</small><strong>{selectedEvent.title}</strong><em><Icon name="clock" size={13} /> {selectedEvent.time} · {songs.length} songs · {selectedEvent.people} people</em></span>
+                  <span className="date-block"><strong>{selectedDay}</strong><small>{monthShort}</small></span>
+                  <span className="service-copy"><small>{selectedEvent.location}</small><strong>{selectedEvent.title}</strong><em><Icon name="clock" size={13} /> {selectedEvent.time} · {(selectedEvent as { songCount?: number }).songCount ?? songs.length} songs · {selectedEvent.people} people</em></span>
                   <span className="expand-icon"><Icon name="chevron" /></span>
                 </button>
                 {setOpen && (
